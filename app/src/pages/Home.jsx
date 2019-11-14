@@ -17,16 +17,11 @@ import {
 } from '@ionic/react';
 import { book, build, colorFill, grid } from 'ionicons/icons';
 import React from 'react';
-import './Tab1.css';
+import './Home.scss';
 
-const Tab1: React.FC = () => {
+const Home = () => {
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>Tab One</IonTitle>
-        </IonToolbar>
-      </IonHeader>
       <IonContent>
         <IonCard className="welcome-card">
           <img src="/assets/shapes.svg" alt="" />
@@ -68,4 +63,4 @@ const Tab1: React.FC = () => {
   );
 };
 
-export default Tab1;
+export default Home;
