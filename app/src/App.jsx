@@ -7,10 +7,12 @@ import {
   IonRouterOutlet,
   IonTabBar,
   IonTabButton,
-  IonTabs
+  IonTabs,
+  IonFab,
+  IonFabButton
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { apps, flash, send, home, search, contact } from 'ionicons/icons';
+import { apps, flash, send, home, search, contact, add, create } from 'ionicons/icons';
 import Home from './pages/Home';
 import Search from './pages/Search';
 import Profile from './pages/Profile';
@@ -37,6 +39,11 @@ import './theme/variables.css';
 
 const App = () => (
   <IonApp>
+    <IonFab horizontal="center" vertical="bottom">
+      <IonFabButton >
+        <IonIcon icon={add} />
+      </IonFabButton>
+    </IonFab>
     <IonReactRouter>
       <IonTabs>
         <IonRouterOutlet>
@@ -52,9 +59,7 @@ const App = () => (
             <IonIcon icon={home} />
             <IonLabel>Home</IonLabel>
           </IonTabButton>
-          <IonTabButton tab="search" href="/search">
-            <IonIcon icon={search} />
-            <IonLabel>Search</IonLabel>
+          <IonTabButton tab="">
           </IonTabButton>
           <IonTabButton tab="profile" href="/profile">
             <IonIcon icon={contact} />
