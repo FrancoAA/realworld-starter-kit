@@ -12,7 +12,9 @@ import {
   IonButton,
   IonSegment,
   IonSegmentButton,
-  IonHeader
+  IonHeader,
+  IonSkeletonText,
+  IonSpinner
 } from '@ionic/react';
 
 import React, { useEffect, useState } from 'react';
@@ -37,14 +39,39 @@ function usePaginator(pageSize) {
   ];
 }
 
+const ListSkeleton = ({ items }) => {
+  const placeholderItems = [];
+
+  for (let i=0; i<items; i++) {
+    placeholderItems.push(
+      <IonItem key={i}>
+        <IonAvatar slot="start">
+          <IonSkeletonText animated />
+        </IonAvatar>
+        <IonLabel>
+          <h2><IonSkeletonText animated style={{ width: '50%' }} /></h2>
+          <h3><IonSkeletonText animated style={{ width: '80%' }} /></h3>
+          <p><IonSkeletonText animated style={{ width: '70%' }} /></p>
+        </IonLabel>
+      </IonItem>
+    );
+  }
+
+  return placeholderItems;
+}
+
 const Home = () => {
   const [ articles, setArticles ] = useState([]);
+  const [ loading, setLoading ] = useState(false);
   const [ paginator, nextPage] = usePaginator(10);
+
 
   useEffect(() => {
     async function fetchArticles() {
+      setLoading(true);
       const { data } = await ArticlesService.query('', paginator);
       setArticles([...articles, ...data.articles]);
+      setLoading(false);
     }
     fetchArticles();
   }, [paginator])
@@ -70,21 +97,25 @@ const Home = () => {
       </IonHeader>
       <IonContent>
         <IonList lines="full">
-         {articles.map(article => (
-           <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
-             <IonAvatar slot="start">
-               <img src={article.author.image}/>
-             </IonAvatar>
-             <IonLabel>
-              <h2>{article.author.username}</h2>
-              <h3>{article.title}</h3>
-              <p>{article.description}</p>
-             </IonLabel>
-           </IonItem>
-         ))}
+          {loading && <ListSkeleton items={5} />}
+
+          {!loading && articles.map(article => (
+            <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
+              <IonAvatar slot="start">
+                <img src={article.author.image}/>
+              </IonAvatar>
+              <IonLabel>
+                <h2>{article.author.username}</h2>
+                <h3>{article.title}</h3>
+                <p>{article.description}</p>
+              </IonLabel>
+            </IonItem>
+          ))}
         </IonList>
 
-        <IonButton expand="full" color="primary" fill="clear" onClick={nextPage}>Load more...</IonButton>
+        <IonButton expand="full" color="primary" fill="clear" onClick={nextPage}>
+          Load more...
+        </IonButton>
 
       </IonContent>
     </IonPage>
