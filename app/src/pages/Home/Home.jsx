@@ -21,7 +21,10 @@ import {
 
 import React, { useEffect, useState } from "react";
 import { book, build, colorFill, grid, funnel } from "ionicons/icons";
-import { ArticlesService, TagsService } from "../common/api.service";
+import { ArticlesService, TagsService } from "../../common/api.service";
+
+import ListSkeleton from './components/ListSkeleton';
+import TagsPopover from './components/TagsPopover';
 
 import "./Home.scss";
 
@@ -36,53 +39,6 @@ function usePaginator(pageSize) {
   };
 
   return [paginator, nextPage];
-}
-
-const ListSkeleton = ({ items }) => {
-  const placeholderItems = [];
-
-  for (let i = 0; i < items; i++) {
-    placeholderItems.push(
-      <IonItem key={i}>
-        <IonAvatar slot="start">
-          <IonSkeletonText animated />
-        </IonAvatar>
-        <IonLabel>
-          <h2>
-            <IonSkeletonText animated style={{ width: "50%" }} />
-          </h2>
-          <h3>
-            <IonSkeletonText animated style={{ width: "80%" }} />
-          </h3>
-          <p>
-            <IonSkeletonText animated style={{ width: "70%" }} />
-          </p>
-        </IonLabel>
-      </IonItem>
-    );
-  }
-
-  return placeholderItems;
-};
-
-const TagsPopover = ({ tags, isOpen, onDidDismiss }) => {
-  return (
-    <IonPopover
-        isOpen={isOpen}
-        onDidDismiss={onDidDismiss}
-      >
-      <IonListHeader>
-        Trending tags
-      </IonListHeader>
-      <div className="ion-padding" style={{'padding-top': 0}}>
-        {tags.map(tag => (
-          <IonChip key={tag}>
-            <IonLabel>{tag}</IonLabel>
-          </IonChip>
-        ))}
-      </div>
-    </IonPopover>
-  );
 }
 
 const Home = () => {
@@ -136,6 +92,7 @@ const Home = () => {
       </IonHeader>
       
       <IonContent>
+
         <IonList lines="full">
           {loading && <ListSkeleton items={5} />}
 

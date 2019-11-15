@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import {
   IonApp,
@@ -14,7 +14,7 @@ import {
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { apps, flash, send, home, search, contact, add, create } from 'ionicons/icons';
-import Home from './pages/Home';
+import Home from './pages/Home/Home';
 import Search from './pages/Search';
 import Profile from './pages/Profile';
 import Details from './pages/Details';
@@ -38,11 +38,17 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 
-const App = () => (
+import ComposeModal from './common/ComposeModal';
+
+const App = () =>  {
+  const [show, showModal] = useState(false);
+
+  return (
   <IonApp>
+    <ComposeModal isOpen={show} closeModal={() => showModal(false)}/>
 
     <IonFab horizontal="center" vertical="bottom">
-      <IonFabButton >
+      <IonFabButton onClick={() => showModal(true)}>
         <IonIcon icon={add} />
       </IonFabButton>
     </IonFab>
@@ -72,6 +78,7 @@ const App = () => (
       </IonTabs>
     </IonReactRouter>
   </IonApp>
-);
+  );
+};
 
 export default App;
