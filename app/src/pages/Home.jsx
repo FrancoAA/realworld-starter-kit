@@ -10,16 +10,18 @@ import {
   IonToolbar,
   IonAvatar,
   IonButton,
+  IonButtons,
   IonSegment,
   IonSegmentButton,
   IonHeader,
   IonSkeletonText,
-  IonSpinner
+  IonPopover,
+  IonChip
 } from "@ionic/react";
 
 import React, { useEffect, useState } from "react";
-import { book, build, colorFill, grid } from "ionicons/icons";
-import { ArticlesService } from "../common/api.service";
+import { book, build, colorFill, grid, funnel } from "ionicons/icons";
+import { ArticlesService, TagsService } from "../common/api.service";
 
 import "./Home.scss";
 
@@ -63,11 +65,33 @@ const ListSkeleton = ({ items }) => {
   return placeholderItems;
 };
 
+const TagsPopover = ({ tags, isOpen, onDidDismiss }) => {
+  return (
+    <IonPopover
+        isOpen={isOpen}
+        onDidDismiss={onDidDismiss}
+      >
+      <IonListHeader>
+        Trending tags
+      </IonListHeader>
+      <div className="ion-padding" style={{'padding-top': 0}}>
+        {tags.map(tag => (
+          <IonChip key={tag}>
+            <IonLabel>{tag}</IonLabel>
+          </IonChip>
+        ))}
+      </div>
+    </IonPopover>
+  );
+}
+
 const Home = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [paginator, nextPage] = usePaginator(10);
   const [section, setSection] = useState("global");
+  const [tags, setTags] = useState([]);
+  const [showPopover, setShowPopover] = useState(false);
 
   useEffect(() => {
     async function fetchArticles() {
@@ -76,7 +100,14 @@ const Home = () => {
       setArticles([...articles, ...data.articles]);
       setLoading(false);
     }
+
+    async function fetchTags() {
+      const { data } = await TagsService.get();
+      setTags(data.tags);
+    }
+
     fetchArticles();
+    fetchTags();
   }, [paginator]);
 
   return (
@@ -84,10 +115,15 @@ const Home = () => {
       <IonHeader>
         <IonToolbar color="light">
           <IonTitle>Conduit</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={() => setShowPopover(true)}>
+              <IonIcon icon={funnel}></IonIcon>
+            </IonButton>
+          </IonButtons>
         </IonToolbar>
         <IonToolbar color="light">
           <IonSegment
-            onIonChange={e => console.log("Segment selected", e.detail.value)}
+            onIonChange={e => setSection(e.detail.value)}
           >
             <IonSegmentButton value="global" checked={section === "global"}>
               <IonLabel>Global Feed</IonLabel>
@@ -98,6 +134,7 @@ const Home = () => {
           </IonSegment>
         </IonToolbar>
       </IonHeader>
+      
       <IonContent>
         <IonList lines="full">
           {loading && <ListSkeleton items={5} />}
@@ -126,6 +163,8 @@ const Home = () => {
           Load more...
         </IonButton>
       </IonContent>
+
+      <TagsPopover tags={tags} isOpen={showPopover} onDidDismiss={() => setShowPopover(false)}/>
     </IonPage>
   );
 };

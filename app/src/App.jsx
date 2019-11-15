@@ -9,7 +9,8 @@ import {
   IonTabButton,
   IonTabs,
   IonFab,
-  IonFabButton
+  IonFabButton,
+  IonButton
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { apps, flash, send, home, search, contact, add, create } from 'ionicons/icons';
@@ -39,11 +40,13 @@ import './theme/variables.css';
 
 const App = () => (
   <IonApp>
+
     <IonFab horizontal="center" vertical="bottom">
       <IonFabButton >
         <IonIcon icon={add} />
       </IonFabButton>
     </IonFab>
+
     <IonReactRouter>
       <IonTabs>
         <IonRouterOutlet>
