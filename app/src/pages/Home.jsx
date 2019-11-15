@@ -1,11 +1,5 @@
 import {
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardSubtitle,
-  IonCardTitle,
   IonContent,
-  IonHeader,
   IonIcon,
   IonItem,
   IonLabel,
@@ -13,51 +7,85 @@ import {
   IonListHeader,
   IonPage,
   IonTitle,
-  IonToolbar
+  IonToolbar,
+  IonAvatar,
+  IonButton,
+  IonSegment,
+  IonSegmentButton,
+  IonHeader
 } from '@ionic/react';
+
+import React, { useEffect, useState } from 'react';
 import { book, build, colorFill, grid } from 'ionicons/icons';
-import React from 'react';
+import { ArticlesService } from '../common/api.service';
+
 import './Home.scss';
 
-const Home = () => {
-  return (
-    <IonPage>
-      <IonContent>
-        <IonCard className="welcome-card">
-          <img src="/assets/shapes.svg" alt="" />
-          <IonCardHeader>
-            <IonCardSubtitle>Get Started</IonCardSubtitle>
-            <IonCardTitle>Welcome to Ionic</IonCardTitle>
-          </IonCardHeader>
-          <IonCardContent>
-            <p>
-              Now that your app has been created, you'll want to start building out features and
-              components. Check out some of the resources below for next steps.
-            </p>
-          </IonCardContent>
-        </IonCard>
+function usePaginator(pageSize) {
+  const [paginator, setPaginator] = useState({ offset: 0, limit: pageSize });
 
-        <IonList lines="none">
-          <IonListHeader>
-            <IonLabel>Resources</IonLabel>
-          </IonListHeader>
-          <IonItem href="https://ionicframework.com/docs/" target="_blank">
-            <IonIcon slot="start" color="medium" icon={book} />
-            <IonLabel>Ionic Documentation</IonLabel>
-          </IonItem>
-          <IonItem href="https://ionicframework.com/docs/building/scaffolding" target="_blank">
-            <IonIcon slot="start" color="medium" icon={build} />
-            <IonLabel>Scaffold Out Your App</IonLabel>
-          </IonItem>
-          <IonItem href="https://ionicframework.com/docs/layout/structure" target="_blank">
-            <IonIcon slot="start" color="medium" icon={grid} />
-            <IonLabel>Change Your App Layout</IonLabel>
-          </IonItem>
-          <IonItem href="https://ionicframework.com/docs/theming/basics" target="_blank">
-            <IonIcon slot="start" color="medium" icon={colorFill} />
-            <IonLabel>Theme Your App</IonLabel>
-          </IonItem>
+  const nextPage = () => {
+    setPaginator(prev => ({
+      offset: prev.offset + prev.limit,
+      limit : prev.limit
+    }));
+  }
+
+  return [
+    paginator,
+    nextPage
+  ];
+}
+
+const Home = () => {
+  const [ articles, setArticles ] = useState([]);
+  const [ paginator, nextPage] = usePaginator(10);
+
+  useEffect(() => {
+    async function fetchArticles() {
+      const { data } = await ArticlesService.query('', paginator);
+      setArticles([...articles, ...data.articles]);
+    }
+    fetchArticles();
+  }, [paginator])
+
+  return (
+    <IonPage className="Home">
+      <IonHeader>
+        <IonToolbar color="light">
+          <IonTitle>
+            Conduit
+          </IonTitle>
+        </IonToolbar>
+        <IonToolbar color="light">
+          <IonSegment onIonChange={e => console.log('Segment selected', e.detail.value)}>
+            <IonSegmentButton value="friends">
+              <IonLabel>Your Feed</IonLabel>
+            </IonSegmentButton>
+            <IonSegmentButton value="enemies">
+              <IonLabel>Global Feed</IonLabel>
+            </IonSegmentButton>
+          </IonSegment>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <IonList lines="full">
+         {articles.map(article => (
+           <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
+             <IonAvatar slot="start">
+               <img src={article.author.image}/>
+             </IonAvatar>
+             <IonLabel>
+              <h2>{article.author.username}</h2>
+              <h3>{article.title}</h3>
+              <p>{article.description}</p>
+             </IonLabel>
+           </IonItem>
+         ))}
         </IonList>
+
+        <IonButton expand="full" color="primary" fill="clear" onClick={nextPage}>Load more...</IonButton>
+
       </IonContent>
     </IonPage>
   );

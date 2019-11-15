@@ -41,12 +41,13 @@ const App = () => (
       <IonTabs>
         <IonRouterOutlet>
           <Route path="/home" component={Home} exact={true} />
+          <Route path="/home/:slug" component={Details} />
           <Route path="/search" component={Search} exact={true} />
           <Route path="/search/details" component={Details} />
           <Route path="/profile" component={Profile} />
           <Route path="/" render={() => <Redirect to="/home" />} exact={true} />
         </IonRouterOutlet>
-        <IonTabBar slot="bottom">
+        <IonTabBar color="light" slot="bottom">
           <IonTabButton tab="home" href="/home">
             <IonIcon icon={home} />
             <IonLabel>Home</IonLabel>

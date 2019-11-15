@@ -1,24 +1,44 @@
-import React from 'react';
-import { IonContent, IonHeader, IonItem, IonLabel, IonList, IonPage, IonTitle, IonToolbar } from '@ionic/react';
+import React, { useEffect, useState } from "react";
 
-import './Search.scss';
+import {
+  IonContent,
+  IonHeader,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonChip
+} from "@ionic/react";
+
+import { book, build, colorFill, grid } from "ionicons/icons";
+import { TagsService } from "../common/api.service";
+
+import "./Search.scss";
 
 const Search = () => {
+  const [tags, setTags] = useState([]);
+
+  useEffect(() => {
+    async function fetchTags() {
+      const { data } = await TagsService.get();
+      setTags(data.tags);
+    }
+
+    fetchTags();
+  }, []);
+
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>Tab Two</IonTitle>
-        </IonToolbar>
-      </IonHeader>
       <IonContent>
-        <IonList>
-          <IonItem routerLink="/search/details">
-            <IonLabel>
-              <h2>Go to detail</h2>
-            </IonLabel>
-          </IonItem>
-        </IonList>
+        <div className="ion-padding">
+          {tags.map(tag => (
+            <IonChip key={tag}>
+              <IonLabel>{tag}</IonLabel>
+            </IonChip>
+          ))}
+        </div>
       </IonContent>
     </IonPage>
   );

@@ -1,7 +1,10 @@
 import React from 'react';
+import { useParams } from 'react-router-dom';
 import { IonBackButton, IonButtons, IonHeader, IonPage, IonToolbar, IonTitle, IonContent } from '@ionic/react';
 
 const Details = () => {
+  const { slug } = useParams();
+
   return (
     <IonPage>
       <IonHeader>
@@ -13,7 +16,7 @@ const Details = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        <p>Details</p>
+        <p>Artigle slug: {slug}</p>
       </IonContent>
     </IonPage>
   );
