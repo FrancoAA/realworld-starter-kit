@@ -7,7 +7,7 @@ import {
   IonLabel
 } from '@ionic/react';
 
-const TagsPopover = ({ tags, isOpen, onDidDismiss }) => {
+const TagsPopover = ({ tags, isOpen, onDidDismiss, onSelectTag }) => {
   return (
     <IonPopover
         isOpen={isOpen}
@@ -16,9 +16,9 @@ const TagsPopover = ({ tags, isOpen, onDidDismiss }) => {
       <IonListHeader>
         Trending tags
       </IonListHeader>
-      <div className="ion-padding" style={{'padding-top': 0}}>
+      <div className="ion-padding" style={{'paddingTop': 0}}>
         {tags.map(tag => (
-          <IonChip key={tag}>
+          <IonChip key={tag} onClick={() => onSelectTag(tag)}>
             <IonLabel>{tag}</IonLabel>
           </IonChip>
         ))}
