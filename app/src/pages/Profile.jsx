@@ -1,15 +1,25 @@
-import React from 'react';
-import { IonHeader, IonToolbar, IonPage, IonTitle, IonContent } from '@ionic/react';
+import React from "react";
+
+import {
+  IonHeader,
+  IonToolbar,
+  IonPage,
+  IonTitle,
+  IonContent,
+  IonAvatar
+} from "@ionic/react";
 
 const Profile = () => {
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Tab Three</IonTitle>
+          <IonTitle>Profile</IonTitle>
         </IonToolbar>
       </IonHeader>
-      <IonContent />
+      <IonContent>
+        <h1>User Profile</h1>
+      </IonContent>
     </IonPage>
   );
 };
