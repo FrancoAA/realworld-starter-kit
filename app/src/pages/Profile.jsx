@@ -6,8 +6,13 @@ import {
   IonPage,
   IonTitle,
   IonContent,
-  IonAvatar
+  IonAvatar,
+  IonButton
 } from "@ionic/react";
+
+import { lock } from 'ionicons/icons';
+
+import ErrorMessage from '../common/ErrorMessage/ErrorMessage';
 
 const Profile = () => {
   return (
@@ -18,7 +23,10 @@ const Profile = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        <h1>User Profile</h1>
+        <ErrorMessage icon={lock} title="Login required" message="Please login or register to continue"
+          callToActionComponent={
+            <IonButton fill="outline">Login</IonButton>
+          }/>
       </IonContent>
     </IonPage>
   );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 import {
   IonModal,
@@ -14,25 +14,31 @@ import {
   IonTextarea,
   IonItem,
   IonFooter
-} from '@ionic/react';
+} from "@ionic/react";
 
-// import { book, build, colorFill, grid, funnel } from "ionicons/icons";
+import { lock } from "ionicons/icons";
 
-const ComposeModal = ({ isOpen, closeModal}) => {
+import ErrorMessage from "./ErrorMessage/ErrorMessage";
+
+const ComposeModal = ({ isOpen, closeModal }) => {
   return (
     <IonModal isOpen={isOpen}>
       <IonHeader>
         <IonToolbar>
-        <IonButtons slot="start">
-            <IonButton onClick={closeModal}>
-              Cancel
-            </IonButton>
+          <IonButtons slot="start">
+            <IonButton onClick={closeModal}>Cancel</IonButton>
           </IonButtons>
           <IonTitle>Compose</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        <IonList lines="full" class="ion-no-margin ion-no-padding">
+        <ErrorMessage
+          icon={lock}
+          title="Login required"
+          message="Please login or register to continue"
+          callToActionComponent={<IonButton fill="outline">Login</IonButton>}
+        />
+        {/* <IonList lines="full" class="ion-no-margin ion-no-padding">
           <IonItem>
             <IonLabel position="stacked">Title</IonLabel>
             <IonInput></IonInput>
@@ -49,7 +55,7 @@ const ComposeModal = ({ isOpen, closeModal}) => {
             <IonLabel position="stacked">Tags</IonLabel>
             <IonInput></IonInput>
           </IonItem>
-        </IonList>
+        </IonList> */}
       </IonContent>
       <IonFooter>
         <IonButton expand="full" onClick={closeModal}>
