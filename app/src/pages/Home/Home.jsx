@@ -24,7 +24,7 @@ import { closeCircle, funnel } from "ionicons/icons";
 import {usePaginator} from '../../common/utils';
 import { ArticlesService, TagsService } from "../../common/api.service";
 
-import ListSkeleton from './components/ListSkeleton';
+import ListSkeleton from '../../common/ListSkeleton';
 import TagsPopover from './components/TagsPopover';
 
 import "./Home.scss";

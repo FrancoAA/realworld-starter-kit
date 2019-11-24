@@ -19,7 +19,7 @@ import {
 
 import { close } from 'ionicons/icons';
 
-const ComposeModal = ({ isOpen, closeModal }) => {
+const EditProfileModal = ({ isOpen, closeModal }) => {
   return (
     <IonModal isOpen={isOpen}>
       <IonHeader>
@@ -29,36 +29,40 @@ const ComposeModal = ({ isOpen, closeModal }) => {
               <IonIcon icon={close}/>
             </IonButton>
           </IonButtons>
-          <IonTitle>Compose</IonTitle>
+          <IonTitle>Edit Profile</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
         <IonList lines="full" class="ion-no-margin ion-no-padding">
           <IonItem>
-            <IonLabel position="stacked">Title</IonLabel>
+            <IonLabel position="stacked">Avatar</IonLabel>
+            <IonInput type="url"></IonInput>
+          </IonItem>
+          <IonItem>
+            <IonLabel position="stacked">Username</IonLabel>
             <IonInput></IonInput>
           </IonItem>
           <IonItem>
-            <IonLabel position="stacked">Description</IonLabel>
-            <IonInput></IonInput>
-          </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">Content</IonLabel>
+            <IonLabel position="stacked">Bio</IonLabel>
             <IonTextarea></IonTextarea>
           </IonItem>
           <IonItem>
-            <IonLabel position="stacked">Tags</IonLabel>
+            <IonLabel position="stacked">Email</IonLabel>
             <IonInput></IonInput>
+          </IonItem>
+          <IonItem>
+            <IonLabel position="stacked">New Password</IonLabel>
+            <IonInput type="password"></IonInput>
           </IonItem>
         </IonList>
       </IonContent>
       <IonFooter>
         <IonButton expand="full" onClick={closeModal}>
-          Publish
+          Update Settings
         </IonButton>
       </IonFooter>
     </IonModal>
   );
 };
 
-export default ComposeModal;
+export default EditProfileModal;

@@ -1,7 +1,7 @@
 .LoginPage {
   .LoginContainer {
     display: table;
-    background: #333;
+    background: var(--ion-color-light, #333);
     height: 100%;
     width: 100%;
 
@@ -16,7 +16,7 @@
 
       .error-message {
         padding: var(--ionic-padding, 16px);
-        color: #fff;
+        color: var(--ion-color-medium, #000);
         text-align: center;
       }
     }
