@@ -21,20 +21,20 @@ import {
 } from "@ionic/react";
 
 import { closeCircle, funnel } from "ionicons/icons";
-import { usePaginator } from '../../common/utils';
+import { usePaginator } from "../../common/utils";
 
-import { Store } from '../../common/AppStore';
+import { Store } from "../../common/AppStore";
 import {
   SET_LOADING,
   SET_TAG_FILTER,
   FETCH_ARTICLES,
   FETCH_TAGS
-} from '../../common/constants';
+} from "../../common/constants";
 
 import { ArticlesService, TagsService } from "../../common/api.service";
 
-import ListSkeleton from '../../common/ListSkeleton';
-import TagsPopover from './components/TagsPopover';
+import ListSkeleton from "../../common/ListSkeleton";
+import TagsPopover from "./components/TagsPopover";
 
 import "./Home.scss";
 
@@ -51,7 +51,7 @@ const Home = () => {
       payload: true
     });
 
-    const { data } = await ArticlesService.query(type, {...paginator, tag});
+    const { data } = await ArticlesService.query(type, { ...paginator, tag });
 
     dispatch({
       type: FETCH_ARTICLES,
@@ -67,24 +67,24 @@ const Home = () => {
   useEffect(() => {
     async function fetchTags() {
       const { data } = await TagsService.get();
-      
+
       dispatch({
         type: FETCH_TAGS,
         payload: data.tags
       });
     }
-    
+
     fetchTags();
   }, []);
 
   useEffect(() => {
     fetchArticles(
-      section === 'personal' ? 'feed' : '',
-      section === 'personal' ?  null : state.tagFilter
+      section === "personal" ? "feed" : "",
+      section === "personal" ? null : state.tagFilter
     );
-  }, [paginator, state.tagFilter, section, state.refresh]);
+  }, [paginator, state.tagFilter, section]);
 
-  const handleSelectTag = (tag) => {
+  const handleSelectTag = tag => {
     dispatch({
       type: SET_TAG_FILTER,
       payload: tag
@@ -100,13 +100,13 @@ const Home = () => {
     });
   };
 
-  const doRefresh = async(evt) => {
+  const doRefresh = async evt => {
     await fetchArticles(
-      section === 'personal' ? 'feed' : '',
-      section === 'personal' ?  null : state.tagFilter
+      section === "personal" ? "feed" : "",
+      section === "personal" ? null : state.tagFilter
     );
     evt.detail.complete();
-  }
+  };
 
   return (
     <IonPage className="Home">
@@ -121,9 +121,7 @@ const Home = () => {
         </IonToolbar>
 
         <IonToolbar color="light">
-          <IonSegment
-            onIonChange={e => setSection(e.detail.value)}
-          >
+          <IonSegment onIonChange={e => setSection(e.detail.value)}>
             <IonSegmentButton value="global" checked={section === "global"}>
               <IonLabel>Global Feed</IonLabel>
             </IonSegmentButton>
@@ -138,12 +136,12 @@ const Home = () => {
             <IonLabel className="FilteringBy">Filtering by: </IonLabel>
             <IonChip>
               <IonLabel>{state.tagFilter}</IonLabel>
-              <IonIcon icon={closeCircle} onClick={clearFilters}/>
+              <IonIcon icon={closeCircle} onClick={clearFilters} />
             </IonChip>
           </IonToolbar>
         )}
       </IonHeader>
-      
+
       <IonContent>
         <IonRefresher slot="fixed" onIonRefresh={doRefresh}>
           <IonRefresherContent></IonRefresherContent>
@@ -163,7 +161,7 @@ const Home = () => {
             </IonItem>
           ))}
 
-            {state.loading && <ListSkeleton items={3} />}
+          {state.loading && <ListSkeleton items={3} />}
         </IonList>
 
         <IonButton
@@ -176,7 +174,12 @@ const Home = () => {
         </IonButton>
       </IonContent>
 
-      <TagsPopover tags={state.tags} isOpen={showPopover} onDidDismiss={() => setShowPopover(false)} onSelectTag={handleSelectTag}/>
+      <TagsPopover
+        tags={state.tags}
+        isOpen={showPopover}
+        onDidDismiss={() => setShowPopover(false)}
+        onSelectTag={handleSelectTag}
+      />
     </IonPage>
   );
 };

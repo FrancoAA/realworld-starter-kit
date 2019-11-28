@@ -20,7 +20,7 @@ import {
 import { close } from 'ionicons/icons';
 
 import { Store } from './AppStore';
-import { SET_REFRESH } from './constants';
+import { FETCH_ARTICLES } from './constants';
 import { ArticlesService } from '../common/api.service';
 
 const ComposeModal = ({ isOpen, closeModal }) => {
@@ -55,8 +55,8 @@ const ComposeModal = ({ isOpen, closeModal }) => {
     ArticlesService.create(article);
     
     dispatch({
-      type: SET_REFRESH,
-      payload: true
+      type: FETCH_ARTICLES,
+      payload: [ article, ...state.articles ]
     });
 
     closeModal();
