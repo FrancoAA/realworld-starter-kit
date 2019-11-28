@@ -42,13 +42,13 @@ const LoginPage = ({ handleSignUp, handleLogin, errorMessage }) => {
       <IonContent>
         <div className="LoginContainer">
           <form name="loginForm" onSubmit={onSubmit}>
-            <TextInput name="username" type="text" placeholder="Username" onChange={e => updateValues(e.target.name, e.target.value)}/>
+            <TextInput name="email" type="email" placeholder="Email" onChange={e => updateValues(e.target.name, e.target.value)}/>
             {signUp && (
-              <TextInput name="email" type="email" placeholder="Email" onChange={e => updateValues(e.target.name, e.target.value)}/>
+              <TextInput name="username" type="text" placeholder="Username" onChange={e => updateValues(e.target.name, e.target.value)}/>
             )}
             <TextInput name="password" type="password" placeholder="Password" onChange={e => updateValues(e.target.name, e.target.value)}/>
 
-            {errorMessage && <p className="error-message">{errorMessage}</p>}
+            {errorMessage && <p className="error-message">{JSON.stringify(errorMessage)}</p>}
 
               <div className="ion-padding">
                 <IonButton type="submit" expand="block">

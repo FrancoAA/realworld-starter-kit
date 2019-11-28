@@ -46,7 +46,7 @@ const App = () =>  {
   const [show, showModal] = useState(false);
 
   return (
-  <AuthProvider fake={true}>
+  <AuthProvider>
     <IonApp>
       <LoginWithAuth protectedComponent={
         <>
