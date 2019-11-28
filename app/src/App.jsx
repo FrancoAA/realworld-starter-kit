@@ -17,7 +17,7 @@ import { apps, flash, send, home, search, contact, add, create } from 'ionicons/
 import Home from './pages/Home/Home';
 import Search from './pages/Search';
 import Profile from './pages/Profile/Profile';
-import Details from './pages/Details';
+import Details from './pages/Details/Details';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';

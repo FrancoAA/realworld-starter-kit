@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import {
   IonBackButton,
   IonButtons,
+  IonButton,
   IonHeader,
   IonPage,
   IonToolbar,
@@ -14,30 +15,39 @@ import {
   IonLabel,
   IonList,
   IonItem,
-  IonAvatar
+  IonAvatar,
+  IonIcon,
+  IonFab,
+  IonFabButton
 } from "@ionic/react";
 
 import marked from 'marked';
 
-import { getProp } from '../common/utils';
+import { heartEmpty, heart, add, remove, chatboxes } from 'ionicons/icons';
 
-import { Store } from '../common/AppStore';
+import { getProp } from '../../common/utils';
+
+import { Store } from '../../common/AppStore';
 
 import {
   SET_LOADING,
   FETCH_ARTICLE,
-  FETCH_ARTICLE_COMMENTS
-} from '../common/constants';
+  FETCH_ARTICLE_COMMENTS,
+  FETCH_ARTICLES
+} from '../../common/constants';
 
-import { ArticlesService, CommentsService } from "../common/api.service";
-import PageHeader from '../common/PageHeader/PageHeader';
+import { ArticlesService, CommentsService, FavoriteService } from "../../common/api.service";
+import PageHeader from '../../common/PageHeader/PageHeader';
+import CommentModal from './components/CommentModal'; 
 
 import './Details.scss';
 
 const Details = () => {
   const { slug } = useParams();
   const { state, dispatch } = useContext(Store);
+  const { article, comments, userFavorited } = state;
   const [section, setSection] = useState('article');
+  const [ isOpen, setIsOpen ] = useState(false);
 
   useEffect(() => {
     async function fetchArticle() {
@@ -76,13 +86,50 @@ const Details = () => {
     return { __html: rawMarkup };
   };
 
+  const isFollowing = (article) => {
+    return !!userFavorited.find(a => a.slug === article.slug);
+  };
+
+  const handleFav = async () => {
+    const { data } = !article.favorited ? 
+      await FavoriteService.add(article.slug) : 
+      await FavoriteService.remove(slug);
+
+    dispatch({
+      type: FETCH_ARTICLE,
+      payload: data.article
+    });
+  };
+
+  // const handleFollow = async () => {
+  //   const { data } = !isFollowing(article) ? 
+  //   await FavoriteService.add(article.slug) : 
+  //   await FavoriteService.remove(slug);
+
+  //   dispatch({
+  //     type: FETCH_ARTICLE,
+  //     payload: data.article
+  //   });
+  // };
+
   return (
     <IonPage className="Details">
-
-      <IonBackButton className="back" text="" color="primary" defaultHref="/home" />
-
       <IonContent>
-        <PageHeader title={state.article.title} subtitle={state.article.description} image={getProp(state.article, 'author.image')}/>
+        <IonToolbar className="controls">
+          <IonButtons slot="start">
+            <IonBackButton className="back" text="" color="primary" defaultHref="/home" />
+          </IonButtons>
+          <IonButtons slot="end">
+            <IonButton onClick={handleFav}>
+              <IonIcon icon={article.favorited ? heart : heartEmpty}/>
+            </IonButton>
+            <IonButton>
+              <IonIcon icon={isFollowing(article) ? remove : add}/>
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+
+        <PageHeader title={article.title} subtitle={article.description} image={getProp(article, 'author.image')}/>
 
         <IonToolbar>
           <IonSegment
@@ -92,20 +139,20 @@ const Details = () => {
               <IonLabel>Article</IonLabel>
             </IonSegmentButton>
             <IonSegmentButton value="comments" checked={section === "comments"}>
-              <IonLabel>Comments ({state.comments.length})</IonLabel>
+              <IonLabel>Comments ({comments.length})</IonLabel>
             </IonSegmentButton>
           </IonSegment>
         </IonToolbar>
 
         {section === 'article' && (
           <div className="ion-padding">
-            {state.article.body && <div className="markdown-container" dangerouslySetInnerHTML={getMarkdownText(state.article.body)}/>}
+            {article.body && <div className="markdown-container" dangerouslySetInnerHTML={getMarkdownText(article.body)}/>}
           </div>
         )}
 
         {section === 'comments' && (
           <IonList>
-            {state.comments.length > 0 && state.comments.map(comment => (
+            {comments.length > 0 && comments.map(comment => (
               <IonItem key={comment.id} lines="full">
                 <IonAvatar slot="start">
                   <img src={comment.author.image} alt="avatar"/>
@@ -116,15 +163,24 @@ const Details = () => {
               </IonItem>
             ))}
 
-            {!state.comments.length && (
+            {!comments.length && (
               <IonItem lines="full">
                 <IonLabel>
                   <p style={{textAlign: 'center'}}>No comments yet.</p>
                 </IonLabel>
+
               </IonItem>
             )}
           </IonList>
         )}
+
+        <CommentModal isOpen={isOpen} closeModal={() => setIsOpen(false)}/>
+
+        <IonFab vertical="bottom" horizontal="end">
+          <IonFabButton onClick={() => setIsOpen(true)}>
+            <IonIcon icon={chatboxes}/>
+          </IonFabButton>
+        </IonFab>
       </IonContent>
     </IonPage>
   );
