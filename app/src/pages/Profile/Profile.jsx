@@ -17,31 +17,29 @@ import {
   IonItem
 } from "@ionic/react";
 
-import { create } from 'ionicons/icons';
+import { create } from "ionicons/icons";
 
-import './Profile.scss';
+import "./Profile.scss";
 
-import { Store } from '../../common/AppStore';
-import { 
-  AUTH_FETCH_USER,
-  FETCH_USER_ARTICLES, 
-  FETCH_USER_FAVORITED_ARTICLES 
-} from '../../common/constants';
-import { ArticlesService } from '../../common/api.service';
+import { Store } from "../../common/AppStore";
+import {
+  FETCH_USER_ARTICLES,
+  FETCH_USER_FAVORITED_ARTICLES
+} from "../../common/constants";
+import { ArticlesService } from "../../common/api.service";
 
-
-import ListSkeleton from '../../common/ListSkeleton';
-import EditProfileModal from './components/EditProfileModal';
+import ListSkeleton from "../../common/ListSkeleton";
+import EditProfileModal from "./components/EditProfileModal";
 
 const Profile = () => {
   const { state, dispatch } = useContext(Store);
   const { user, userArticles, userFavorited } = state;
-  const [section, setSection] = useState('my-articles');
+  const [section, setSection] = useState("my-articles");
   const [editProfile, setEditProfile] = useState(false);
 
   useEffect(() => {
     async function fetchUserArticles() {
-      const { data } = await ArticlesService.query('', {
+      const { data } = await ArticlesService.query("", {
         author: user.username
       });
 
@@ -52,12 +50,12 @@ const Profile = () => {
     }
 
     async function fetchUserFavoritedArticles() {
-      const { data } = await ArticlesService.query('', {
+      const { data } = await ArticlesService.query("", {
         favorited: user.username
       });
 
       dispatch({
-        type: FETCH_USER_ARTICLES,
+        type: FETCH_USER_FAVORITED_ARTICLES,
         payload: data.articles
       });
     }
@@ -79,60 +77,74 @@ const Profile = () => {
         </IonToolbar>
       </IonHeader>
 
-      <EditProfileModal isOpen={editProfile} closeModal={() => setEditProfile(false)}/>
+      <EditProfileModal
+        isOpen={editProfile}
+        closeModal={() => setEditProfile(false)}
+      />
 
       <IonContent>
-
         <div className="Profile-PageHeader">
           <div className="Profile-PageHeader_Avatar">
             <IonAvatar>
-              <img src={user.image} alt="avatar"/>
+              <img src={user.image} alt="avatar" />
             </IonAvatar>
             <p>{user.bio}</p>
           </div>
         </div>
 
         <IonToolbar color="light">
-          <IonSegment
-              onIonChange={e => setSection(e.detail.value)}
+          <IonSegment onIonChange={e => setSection(e.detail.value)}>
+            <IonSegmentButton
+              value="my-articles"
+              checked={section === "my-articles"}
             >
-            <IonSegmentButton value="my-articles" checked={section === "my-articles"}>
               <IonLabel>My Articles</IonLabel>
             </IonSegmentButton>
-            <IonSegmentButton value="favorite-articles" checked={section === "favorite-articles"}>
+            <IonSegmentButton
+              value="favorite-articles"
+              checked={section === "favorite-articles"}
+            >
               <IonLabel>Favorite Articles</IonLabel>
             </IonSegmentButton>
           </IonSegment>
         </IonToolbar>
 
         <IonList lines="full">
-          {section === 'my-articles' && userArticles.map(article => (
-            <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
-              <IonAvatar slot="start">
-                <img src={article.author.image} />
-              </IonAvatar>
-              <IonLabel>
-                <h2>{article.author.username}</h2>
-                <h3>{article.title}</h3>
-                <p>{article.description}</p>
-              </IonLabel>
-            </IonItem>
-          ))}
+          {section === "my-articles" &&
+            userArticles.map(article => (
+              <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
+                <IonAvatar slot="start">
+                  <img src={article.author.image} />
+                </IonAvatar>
+                <IonLabel>
+                  <h2>{article.author.username}</h2>
+                  <h3>{article.title}</h3>
+                  <p>{article.description}</p>
+                </IonLabel>
+              </IonItem>
+            ))}
 
-          {section === 'favorite-articles' && userFavorited.map(article => (
-            <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
-              <IonAvatar slot="start">
-                <img src={article.author.image} />
-              </IonAvatar>
-              <IonLabel>
-                <h2>{article.author.username}</h2>
-                <h3>{article.title}</h3>
-                <p>{article.description}</p>
-              </IonLabel>
+          {section === "favorite-articles" &&
+            userFavorited.map(article => (
+              <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
+                <IonAvatar slot="start">
+                  <img src={article.author.image} />
+                </IonAvatar>
+                <IonLabel>
+                  <h2>{article.author.username}</h2>
+                  <h3>{article.title}</h3>
+                  <p>{article.description}</p>
+                </IonLabel>
+              </IonItem>
+            ))}
+
+          {((section === "my-articles" && userArticles.length === 0) ||
+            (section === "favorite-articles" && userFavorited.length === 0)) && (
+            <IonItem>
+              <IonLabel>No articles are here... yet.</IonLabel>
             </IonItem>
-          ))}
+          )}
         </IonList>
-
       </IonContent>
     </IonPage>
   );
