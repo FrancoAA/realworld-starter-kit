@@ -1,20 +1,15 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 
 import ApiService from './api.service';
 import JwtService from "./jwt.token.service";
-
-const initialState = {
-  user: null,
-  errorMessage: null,
-  isLoggedIn: JwtService.getToken()
-};
+import { Store } from './AppStore';
+import { AUTH_FETCH_USER, AUTH_LOGIN, AUTH_LOGOUT, AUTH_SIGNUP, AUTH_ERROR } from './constants';
 
 const AuthContext = React.createContext();
 
-
 const AuthProvider = ({ children }) => {
-  const [auth, setAuth] = useState(initialState);
+  const { state, dispatch } = React.useContext(Store);
   
   useEffect(() => {
     checkAuth();
@@ -23,9 +18,15 @@ const AuthProvider = ({ children }) => {
   const handleSignUp = async({ username, email, password }) => {    
     try {
       const { data } = await ApiService.post('users', { user: { username, email, password }});
+
       console.log('SignUp data: ', data);
+      
       JwtService.saveToken(data.user.token);
-      setAuth({ user: data.user, isLoggedIn: true });
+      
+      dispatch({
+        type: AUTH_SIGNUP,
+        payload: data.user
+      });
     } catch (error) {
       console.log(error);
       handleAuthError(error);
@@ -35,9 +36,15 @@ const AuthProvider = ({ children }) => {
   const handleLogin = async({ email, password }) => {    
     try {
       const { data } = await ApiService.post('users/login', { user: { email, password }});
+      
       console.log('Login data: ', data);
+      
       JwtService.saveToken(data.user.token);
-      setAuth({ user: data.user, isLoggedIn: true });
+
+      dispatch({
+        type: AUTH_LOGIN,
+        payload: data.user
+      });
     } catch (error) {
       console.log(error);
       handleAuthError(error);
@@ -45,16 +52,28 @@ const AuthProvider = ({ children }) => {
   };
 
   const handleLogout = async() => {
-    setAuth({ user: null, isLoggedIn: false });
+    JwtService.destroyToken();
+
+    dispatch({
+      type: AUTH_LOGOUT,
+      payload: null
+    });
   };
 
   const checkAuth = async() => {
     if (JwtService.getToken()) {
+
       ApiService.setHeader();
+
       try {
         const { data } = await ApiService.get('user');
+
         console.log('checkAuth: ', data);
-        setAuth({ user: data.user, isLoggedIn: true });
+
+        dispatch({
+          type: AUTH_FETCH_USER,
+          payload: data.user
+        });
       } catch (error) {
         handleAuthError(error);
       }
@@ -77,12 +96,20 @@ const AuthProvider = ({ children }) => {
     }
 
     const { data } = await ApiService.put('user', user);
-    setAuth(prev => ({ user: data.user, ...prev }));
+
+    dispatch({
+      type: AUTH_FETCH_USER,
+      payload: data.user
+    });
   };
 
   const handleAuthError = (error) => {
     JwtService.destroyToken();
-    setAuth({ user: null, isLoggedIn: false, errorMessage: error });
+
+    dispatch({
+      type: AUTH_ERROR,
+      payload: error
+    });
   };
 
   return (
@@ -93,7 +120,7 @@ const AuthProvider = ({ children }) => {
       handleAuthError,
       checkAuth,
       updateUser,
-      ...auth
+      ...state
       }}>
       {children}
     </AuthContext.Provider>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 
 import {
   IonHeader,
@@ -12,25 +12,65 @@ import {
   IonSegment,
   IonSegmentButton,
   IonLabel,
-  IonIcon
+  IonIcon,
+  IonList,
+  IonItem
 } from "@ionic/react";
 
 import { create } from 'ionicons/icons';
 
 import './Profile.scss';
 
+import { Store } from '../../common/AppStore';
+import { 
+  AUTH_FETCH_USER,
+  FETCH_USER_ARTICLES, 
+  FETCH_USER_FAVORITED_ARTICLES 
+} from '../../common/constants';
+import { ArticlesService } from '../../common/api.service';
+
+
 import ListSkeleton from '../../common/ListSkeleton';
 import EditProfileModal from './components/EditProfileModal';
 
 const Profile = () => {
+  const { state, dispatch } = useContext(Store);
+  const { user, userArticles, userFavorited } = state;
   const [section, setSection] = useState('my-articles');
   const [editProfile, setEditProfile] = useState(false);
+
+  useEffect(() => {
+    async function fetchUserArticles() {
+      const { data } = await ArticlesService.query('', {
+        author: user.username
+      });
+
+      dispatch({
+        type: FETCH_USER_ARTICLES,
+        payload: data.articles
+      });
+    }
+
+    async function fetchUserFavoritedArticles() {
+      const { data } = await ArticlesService.query('', {
+        favorited: user.username
+      });
+
+      dispatch({
+        type: FETCH_USER_ARTICLES,
+        payload: data.articles
+      });
+    }
+
+    fetchUserArticles();
+    fetchUserFavoritedArticles();
+  }, []);
 
   return (
     <IonPage className="Profile">
       <IonHeader>
         <IonToolbar>
-          <IonTitle>franco89</IonTitle>
+          <IonTitle>{user.username}</IonTitle>
           <IonButtons slot="end">
             <IonButton onClick={() => setEditProfile(true)}>
               <IonIcon icon={create} />
@@ -46,9 +86,9 @@ const Profile = () => {
         <div className="Profile-PageHeader">
           <div className="Profile-PageHeader_Avatar">
             <IonAvatar>
-              <img src="https://placeimg.com/100/100/people" alt="avatar"/>
+              <img src={user.image} alt="avatar"/>
             </IonAvatar>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean tempor felis eros, id volutpat mauris rutrum vel. Mauris sagittis, nunc tristique sed.</p>
+            <p>{user.bio}</p>
           </div>
         </div>
 
@@ -65,13 +105,33 @@ const Profile = () => {
           </IonSegment>
         </IonToolbar>
 
-        {section === 'my-articles' && (
-          <ListSkeleton items={5}/>
-        )}
+        <IonList lines="full">
+          {section === 'my-articles' && userArticles.map(article => (
+            <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
+              <IonAvatar slot="start">
+                <img src={article.author.image} />
+              </IonAvatar>
+              <IonLabel>
+                <h2>{article.author.username}</h2>
+                <h3>{article.title}</h3>
+                <p>{article.description}</p>
+              </IonLabel>
+            </IonItem>
+          ))}
 
-        {section === 'favorite-articles' && (
-          <ListSkeleton items={5}/>
-        )}
+          {section === 'favorite-articles' && userFavorited.map(article => (
+            <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
+              <IonAvatar slot="start">
+                <img src={article.author.image} />
+              </IonAvatar>
+              <IonLabel>
+                <h2>{article.author.username}</h2>
+                <h3>{article.title}</h3>
+                <p>{article.description}</p>
+              </IonLabel>
+            </IonItem>
+          ))}
+        </IonList>
 
       </IonContent>
     </IonPage>

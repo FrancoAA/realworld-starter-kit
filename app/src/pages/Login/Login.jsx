@@ -71,13 +71,13 @@ const LoginPage = ({ handleSignUp, handleLogin, errorMessage }) => {
 
 const LoginWithAuth = ({ protectedComponent: ProtectedComponent }) => (
   <AuthConsumer>
-    {({ isLoggedIn, handleSignUp, handleLogin, errorMessage }) =>
+    {({ isLoggedIn, handleSignUp, handleLogin, error }) =>
       isLoggedIn ? ProtectedComponent
 : (
         <LoginPage
           handleLogin={handleLogin}
           handleSignUp={handleSignUp}
-          errorMessage={errorMessage}
+          errorMessage={error}
         />
       )
     }

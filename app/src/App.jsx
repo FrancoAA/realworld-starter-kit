@@ -40,52 +40,55 @@ import './theme/variables.css';
 
 import ComposeModal from './common/ComposeModal';
 import { LoginPage, LoginWithAuth } from './pages/Login/Login';
-import { AuthConsumer, AuthProvider } from './common/AuthContextProvider';
+import { StoreProvider } from './common/AppStore';
+import { AuthProvider } from './common/AuthContextProvider';
 
 const App = () =>  {
   const [show, showModal] = useState(false);
 
   return (
-  <AuthProvider>
-    <IonApp>
-      <LoginWithAuth protectedComponent={
-        <>
-          <ComposeModal isOpen={show} closeModal={() => showModal(false)}/>
+    <StoreProvider>
+      <AuthProvider>
+        <IonApp>
+          <LoginWithAuth protectedComponent={
+            <>
+              <ComposeModal isOpen={show} closeModal={() => showModal(false)}/>
 
-          <IonFab horizontal="center" vertical="bottom">
-            <IonFabButton onClick={() => showModal(true)}>
-              <IonIcon icon={add} />
-            </IonFabButton>
-          </IonFab>
+              <IonFab horizontal="center" vertical="bottom">
+                <IonFabButton onClick={() => showModal(true)}>
+                  <IonIcon icon={add} />
+                </IonFabButton>
+              </IonFab>
 
-          <IonReactRouter>
-            <IonTabs>
-              <IonRouterOutlet>
-                <Route path="/home" component={Home} exact={true} />
-                <Route path="/home/:slug" component={Details} />
-                <Route path="/search" component={Search} exact={true} />
-                <Route path="/search/details" component={Details} />
-                <Route path="/profile" component={Profile} />
-                <Route path="/" render={() => <Redirect to="/home" />} exact={true} />
-              </IonRouterOutlet>
-              <IonTabBar color="light" slot="bottom">
-                <IonTabButton tab="home" href="/home">
-                  <IonIcon icon={home} />
-                  <IonLabel>Home</IonLabel>
-                </IonTabButton>
-                <IonTabButton tab="">
-                </IonTabButton>
-                <IonTabButton tab="profile" href="/profile">
-                  <IonIcon icon={contact} />
-                  <IonLabel>Profile</IonLabel>
-                </IonTabButton>
-              </IonTabBar>
-            </IonTabs>
-          </IonReactRouter>
-        </>
-      }/>
-    </IonApp>
-  </AuthProvider>
+              <IonReactRouter>
+                <IonTabs>
+                  <IonRouterOutlet>
+                    <Route path="/home" component={Home} exact={true} />
+                    <Route path="/home/:slug" component={Details} />
+                    <Route path="/search" component={Search} exact={true} />
+                    <Route path="/search/details" component={Details} />
+                    <Route path="/profile" component={Profile} />
+                    <Route path="/" render={() => <Redirect to="/home" />} exact={true} />
+                  </IonRouterOutlet>
+                  <IonTabBar color="light" slot="bottom">
+                    <IonTabButton tab="home" href="/home">
+                      <IonIcon icon={home} />
+                      <IonLabel>Home</IonLabel>
+                    </IonTabButton>
+                    <IonTabButton tab="">
+                    </IonTabButton>
+                    <IonTabButton tab="profile" href="/profile">
+                      <IonIcon icon={contact} />
+                      <IonLabel>Profile</IonLabel>
+                    </IonTabButton>
+                  </IonTabBar>
+                </IonTabs>
+              </IonReactRouter>
+            </>
+          }/>
+        </IonApp>
+      </AuthProvider>
+    </StoreProvider>
   );
 };
 
