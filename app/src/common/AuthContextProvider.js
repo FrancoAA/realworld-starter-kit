@@ -22,6 +22,7 @@ const AuthProvider = ({ children }) => {
       console.log('SignUp data: ', data);
       
       JwtService.saveToken(data.user.token);
+      ApiService.setHeader();
       
       dispatch({
         type: AUTH_SIGNUP,
@@ -40,6 +41,7 @@ const AuthProvider = ({ children }) => {
       console.log('Login data: ', data);
       
       JwtService.saveToken(data.user.token);
+      ApiService.setHeader();
 
       dispatch({
         type: AUTH_LOGIN,
@@ -61,6 +63,7 @@ const AuthProvider = ({ children }) => {
   };
 
   const checkAuth = async() => {
+    console.log('checkAuth called');
     if (JwtService.getToken()) {
 
       ApiService.setHeader();

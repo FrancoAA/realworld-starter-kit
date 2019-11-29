@@ -98,13 +98,13 @@ const Profile = () => {
               value="my-articles"
               checked={section === "my-articles"}
             >
-              <IonLabel>My Articles</IonLabel>
+              <IonLabel>My Articles ({userArticles.length})</IonLabel>
             </IonSegmentButton>
             <IonSegmentButton
               value="favorite-articles"
               checked={section === "favorite-articles"}
             >
-              <IonLabel>Favorite Articles</IonLabel>
+              <IonLabel>Favorite Articles ({userFavorited.length})</IonLabel>
             </IonSegmentButton>
           </IonSegment>
         </IonToolbar>
