@@ -28,6 +28,7 @@ import {
   SET_LOADING,
   SET_TAG_FILTER,
   FETCH_ARTICLES,
+  FETCH_USER_ARTICLES_FEED,
   FETCH_TAGS
 } from "../../common/constants";
 
@@ -40,6 +41,7 @@ import "./Home.scss";
 
 const Home = () => {
   const { state, dispatch } = useContext(Store);
+  const { articles, userFeed, tagFilter, loading, tags } = state;
 
   const [paginator, nextPage] = usePaginator(10);
   const [section, setSection] = useState("global");
@@ -53,10 +55,20 @@ const Home = () => {
 
     const { data } = await ArticlesService.query(type, { ...paginator, tag });
 
-    dispatch({
-      type: FETCH_ARTICLES,
-      payload: data.articles
-    });
+    switch (type) {
+      case 'feed':
+        dispatch({
+          type: FETCH_USER_ARTICLES_FEED,
+          payload: data.articles
+        });
+        break;
+      default:
+        dispatch({
+          type: FETCH_ARTICLES,
+          payload: data.articles
+        });
+        break;
+    }
 
     dispatch({
       type: SET_LOADING,
@@ -80,9 +92,9 @@ const Home = () => {
   useEffect(() => {
     fetchArticles(
       section === "personal" ? "feed" : "",
-      section === "personal" ? null : state.tagFilter
+      section === "personal" ? null : tagFilter
     );
-  }, [paginator, state.tagFilter, section]);
+  }, [paginator, tagFilter, section]);
 
   const handleSelectTag = tag => {
     dispatch({
@@ -103,7 +115,7 @@ const Home = () => {
   const doRefresh = async evt => {
     await fetchArticles(
       section === "personal" ? "feed" : "",
-      section === "personal" ? null : state.tagFilter
+      section === "personal" ? null : tagFilter
     );
     evt.detail.complete();
   };
@@ -131,11 +143,11 @@ const Home = () => {
           </IonSegment>
         </IonToolbar>
 
-        {state.tagFilter && (
+        {tagFilter && (
           <IonToolbar color="light">
             <IonLabel className="FilteringBy">Filtering by: </IonLabel>
             <IonChip>
-              <IonLabel>{state.tagFilter}</IonLabel>
+              <IonLabel>{tagFilter}</IonLabel>
               <IonIcon icon={closeCircle} onClick={clearFilters} />
             </IonChip>
           </IonToolbar>
@@ -148,7 +160,7 @@ const Home = () => {
         </IonRefresher>
 
         <IonList lines="full">
-          {state.articles.map(article => (
+          {section === 'global' && articles.map(article => (
             <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
               <IonAvatar slot="start">
                 <img src={article.author.image} />
@@ -161,7 +173,20 @@ const Home = () => {
             </IonItem>
           ))}
 
-          {state.loading && <ListSkeleton items={3} />}
+          {section === 'personal' && userFeed.map(article => (
+            <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
+              <IonAvatar slot="start">
+                <img src={article.author.image} />
+              </IonAvatar>
+              <IonLabel>
+                <h2>{article.author.username}</h2>
+                <h3>{article.title}</h3>
+                <p>{article.description}</p>
+              </IonLabel>
+            </IonItem>
+          ))}
+
+          {loading && <ListSkeleton items={3} />}
         </IonList>
 
         <IonButton
@@ -175,7 +200,7 @@ const Home = () => {
       </IonContent>
 
       <TagsPopover
-        tags={state.tags}
+        tags={tags}
         isOpen={showPopover}
         onDidDismiss={() => setShowPopover(false)}
         onSelectTag={handleSelectTag}

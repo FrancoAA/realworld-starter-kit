@@ -16,6 +16,7 @@ import {
   FETCH_ARTICLE_COMMENTS,
 
   FETCH_USER_ARTICLES,
+  FETCH_USER_ARTICLES_FEED,
   FETCH_USER_FAVORITED_ARTICLES,
 
   FETCH_TAGS
@@ -26,6 +27,7 @@ export const Store = createContext();
 export const initialState = {
   user: null,
   userArticles: [],
+  userFeed: [],
   userFavorited: [],
   loading: false,
   errors: null,
@@ -70,6 +72,8 @@ function reducer(state, { type, payload }) {
 
     case FETCH_USER_ARTICLES:
       return { ...state, userArticles: payload };
+    case FETCH_USER_ARTICLES_FEED:
+        return { ...state, userFeed: payload };
     case FETCH_USER_FAVORITED_ARTICLES:
       return { ...state, userFavorited: payload };
 
