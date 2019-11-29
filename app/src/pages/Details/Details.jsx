@@ -22,7 +22,7 @@ import {
 } from "@ionic/react";
 
 import marked from "marked";
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from "date-fns";
 
 import { heartEmpty, heart, add, remove, chatboxes } from "ionicons/icons";
 
@@ -34,10 +34,11 @@ import {
   SET_LOADING,
   FETCH_ARTICLE,
   FETCH_ARTICLE_COMMENTS,
-  FETCH_ARTICLES
+  FETCH_ARTICLES,
+  FETCH_USER_ARTICLES_FEED
 } from "../../common/constants";
 
-import {
+import ApiService, {
   ArticlesService,
   CommentsService,
   FavoriteService
@@ -50,7 +51,7 @@ import "./Details.scss";
 const Details = () => {
   const { slug } = useParams();
   const { state, dispatch } = useContext(Store);
-  const { article, comments, userFavorited } = state;
+  const { article, comments, userFeed } = state;
   const [section, setSection] = useState("article");
   const [isOpen, setIsOpen] = useState(false);
 
@@ -92,7 +93,7 @@ const Details = () => {
   };
 
   const isFollowing = article => {
-    return !!userFavorited.find(a => a.slug === article.slug);
+    return !!userFeed.find(a => a.slug === article.slug);
   };
 
   const handleFav = async () => {
@@ -106,16 +107,20 @@ const Details = () => {
     });
   };
 
-  // const handleFollow = async () => {
-  //   const { data } = !isFollowing(article) ?
-  //   await FavoriteService.add(article.slug) :
-  //   await FavoriteService.remove(slug);
+  const handleFollow = async () => {
+    const action = !isFollowing(article) ? "post" : "delete";
+    const { data } = await ApiService[action](
+      `profiles/${article.author.username}/follow`
+    );
 
-  //   dispatch({
-  //     type: FETCH_ARTICLE,
-  //     payload: data.article
-  //   });
-  // };
+    dispatch({
+      type: FETCH_USER_ARTICLES_FEED,
+      payload:
+        action === "post"
+          ? [article, ...userFeed]
+          : userFeed.filter(a => a === article)
+    });
+  };
 
   return (
     <IonPage className="Details">
@@ -133,7 +138,7 @@ const Details = () => {
             <IonButton color="light" onClick={handleFav}>
               <IonIcon icon={article.favorited ? heart : heartEmpty} />
             </IonButton>
-            <IonButton color="light">
+            <IonButton color="light" onClick={handleFollow}>
               <IonIcon icon={isFollowing(article) ? remove : add} />
             </IonButton>
           </IonButtons>
@@ -142,7 +147,9 @@ const Details = () => {
         <PageHeader
           title={article.title}
           subtitle={article.description}
-          date={formatDistanceToNow(new Date(getProp(article, 'createdAt', new Date())))}
+          date={formatDistanceToNow(
+            new Date(getProp(article, "createdAt", new Date()))
+          )}
           image={getProp(article, "author.image")}
         />
 
