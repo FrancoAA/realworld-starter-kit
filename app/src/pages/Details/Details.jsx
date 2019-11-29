@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useHistory } from "react-router-dom";
 
 import {
   IonBackButton,
@@ -18,13 +18,14 @@ import {
   IonAvatar,
   IonIcon,
   IonFab,
-  IonFabButton
+  IonFabButton,
+  IonAlert
 } from "@ionic/react";
 
 import marked from "marked";
 import { formatDistanceToNow } from "date-fns";
 
-import { heartEmpty, heart, add, remove, chatboxes } from "ionicons/icons";
+import { heartEmpty, heart, add, remove, chatboxes, create, trash } from "ionicons/icons";
 
 import { getProp } from "../../common/utils";
 
@@ -35,7 +36,9 @@ import {
   FETCH_ARTICLE,
   FETCH_ARTICLE_COMMENTS,
   FETCH_ARTICLES,
-  FETCH_USER_ARTICLES_FEED
+  FETCH_USER_ARTICLES_FEED,
+  EDIT_ARTICLE,
+  DELETE_ARTICLE
 } from "../../common/constants";
 
 import ApiService, {
@@ -51,9 +54,12 @@ import "./Details.scss";
 const Details = () => {
   const { slug } = useParams();
   const { state, dispatch } = useContext(Store);
-  const { article, comments, userFeed } = state;
+  const { user, article, comments, userFeed } = state;
   const [section, setSection] = useState("article");
   const [isOpen, setIsOpen] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+
+  let history = useHistory();
 
   useEffect(() => {
     async function fetchArticle() {
@@ -122,6 +128,34 @@ const Details = () => {
     });
   };
 
+  const isOwn = article => {
+    return getProp(article, 'author.username') === getProp(user , 'username');
+  };
+
+  const handleEdit = article => {
+    dispatch({
+      type: EDIT_ARTICLE,
+      payload: article
+    });
+  };
+
+  const handleDelete = () => {
+    setShowAlert(true);
+  };
+
+  const performDeletion = async() => {
+    setShowAlert(false);
+
+    await ArticlesService.destroy(article.slug);
+
+    dispatch({
+      type: DELETE_ARTICLE,
+      payload: article
+    });
+
+    history.goBack();
+  };
+
   return (
     <IonPage className="Details">
       <IonContent>
@@ -135,14 +169,48 @@ const Details = () => {
             />
           </IonButtons>
           <IonButtons slot="end">
-            <IonButton color="light" onClick={handleFav}>
-              <IonIcon icon={article.favorited ? heart : heartEmpty} />
-            </IonButton>
-            <IonButton color="light" onClick={handleFollow}>
-              <IonIcon icon={isFollowing(article) ? remove : add} />
-            </IonButton>
+            
+            {!isOwn(article) && (
+              <>
+                <IonButton color="light" size="large" onClick={handleFav}>
+                  <IonIcon icon={article.favorited ? heart : heartEmpty} />
+                </IonButton>
+                <IonButton color="light" size="large" onClick={handleFollow}>
+                  <IonIcon icon={isFollowing(article) ? remove : add} />
+                </IonButton>
+              </>
+            )}
+
+            {isOwn(article) && (
+              <>
+                <IonButton color="light" size="large" onClick={() => handleEdit(article)}>
+                  <IonIcon icon={create} />
+                </IonButton>
+                <IonButton color="danger" size="large" onClick={() => handleDelete(article)}>
+                  <IonIcon icon={trash} />
+                </IonButton>
+              </>
+            )}
+            
           </IonButtons>
         </IonToolbar>
+
+        <IonAlert 
+          isOpen={showAlert}
+          onDidDismiss={(e) => e.detail.role && performDeletion()}
+          header={'Delete Article'}
+          message={'are you sure that you want to delete this article?'}
+          buttons={[
+            {
+              text: 'Yes',
+              role: true
+            },
+            {
+              text: 'No',
+              role: false
+            }
+          ]}>
+        </IonAlert>
 
         <PageHeader
           title={article.title}

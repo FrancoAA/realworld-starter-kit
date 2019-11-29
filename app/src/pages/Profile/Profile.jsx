@@ -104,7 +104,7 @@ const Profile = () => {
               value="favorite-articles"
               checked={section === "favorite-articles"}
             >
-              <IonLabel>Favorite Articles ({userFavorited.length})</IonLabel>
+              <IonLabel>Favorited ({userFavorited.length})</IonLabel>
             </IonSegmentButton>
           </IonSegment>
         </IonToolbar>

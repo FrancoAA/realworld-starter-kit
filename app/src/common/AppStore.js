@@ -19,7 +19,15 @@ import {
   FETCH_USER_ARTICLES_FEED,
   FETCH_USER_FAVORITED_ARTICLES,
 
-  FETCH_TAGS
+  FETCH_TAGS,
+
+  CREATE_ARTICLE,
+  EDIT_ARTICLE,
+  UPDATE_ARTICLE,
+  DELETE_ARTICLE,
+
+  OPEN_COMPOSE_MODAL,
+  CLOSE_COMPOSE_MODAL
 } from './constants';
 
 export const Store = createContext();
@@ -37,7 +45,7 @@ export const initialState = {
   articles: [],
   comments: [],
   isLoggedIn: false,
-  refresh: false
+  showComposeModal: false
 };
 
 function reducer(state, { type, payload }) {
@@ -79,6 +87,25 @@ function reducer(state, { type, payload }) {
 
     case FETCH_TAGS:
       return { ...state, tags: payload };
+
+    case EDIT_ARTICLE:
+      return { ...state, edit: true, showComposeModal: true };
+    case CREATE_ARTICLE:
+      return { ...state, articles: [payload, ...state.articles], article: payload };
+    case UPDATE_ARTICLE:
+        const articlesCopy = [ ...state.articles ];
+        const index = articlesCopy.findIndex(a => a.slug === payload.slug);
+        articlesCopy[index] = payload;
+        return { ...state, edit: false, article: payload, articles: [...articlesCopy] };
+    case DELETE_ARTICLE:
+      const removeArticleFn = a => a.slug !== payload.slug;
+      const filteredUserArticles = state.userArticles.filter(removeArticleFn);
+      const filteredArticles = state.articles.filter(removeArticleFn);
+      return { ...state, article: {}, articles: [ ...filteredArticles ], userArticles: filteredUserArticles };
+    case OPEN_COMPOSE_MODAL:
+        return { ...state, showComposeModal: true };
+    case CLOSE_COMPOSE_MODAL:
+      return { ...state, edit: false, showComposeModal: false };
 
     default:
       return state;

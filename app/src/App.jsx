@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import {
   IonApp,
@@ -38,24 +38,36 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 
+import { OPEN_COMPOSE_MODAL, CLOSE_COMPOSE_MODAL } from './common/constants';
 import ComposeModal from './common/ComposeModal';
-import { LoginPage, LoginWithAuth } from './pages/Login/Login';
-import { StoreProvider } from './common/AppStore';
+import { LoginWithAuth } from './pages/Login/Login';
+import { Store } from './common/AppStore';
 import { AuthProvider } from './common/AuthContextProvider';
 
 const App = () =>  {
-  const [show, showModal] = useState(false);
+  const { state, dispatch } = useContext(Store);
+
+  const showComposeModal = () => {
+    dispatch({
+      type: OPEN_COMPOSE_MODAL
+    });
+  };
+
+  const closeComposeModal = () => {
+    dispatch({
+      type: CLOSE_COMPOSE_MODAL
+    });
+  }
 
   return (
-    <StoreProvider>
       <AuthProvider>
         <IonApp>
           <LoginWithAuth protectedComponent={
             <>
-              <ComposeModal isOpen={show} closeModal={() => showModal(false)}/>
+              <ComposeModal closeModal={closeComposeModal}/>
 
               <IonFab horizontal="center" vertical="bottom">
-                <IonFabButton onClick={() => showModal(true)}>
+                <IonFabButton onClick={showComposeModal}>
                   <IonIcon icon={add} />
                 </IonFabButton>
               </IonFab>
@@ -88,7 +100,6 @@ const App = () =>  {
           }/>
         </IonApp>
       </AuthProvider>
-    </StoreProvider>
   );
 };
 
