@@ -146,7 +146,7 @@ const Details = () => {
           image={getProp(article, "author.image")}
         />
 
-        <IonToolbar>
+        <IonToolbar color="light">
           <IonSegment onIonChange={e => setSection(e.detail.value)}>
             <IonSegmentButton value="article" checked={section === "article"}>
               <IonLabel>Article</IonLabel>
