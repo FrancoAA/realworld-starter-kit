@@ -125,15 +125,15 @@ const Details = () => {
             <IonBackButton
               className="back"
               text=""
-              color="primary"
+              color="light"
               defaultHref="/home"
             />
           </IonButtons>
           <IonButtons slot="end">
-            <IonButton onClick={handleFav}>
+            <IonButton color="light" onClick={handleFav}>
               <IonIcon icon={article.favorited ? heart : heartEmpty} />
             </IonButton>
-            <IonButton>
+            <IonButton color="light">
               <IonIcon icon={isFollowing(article) ? remove : add} />
             </IonButton>
           </IonButtons>
