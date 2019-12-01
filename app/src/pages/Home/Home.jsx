@@ -21,7 +21,7 @@ import {
 } from "@ionic/react";
 
 import { closeCircle, funnel } from "ionicons/icons";
-import { usePaginator } from "../../common/utils";
+import { usePaginator, getProp } from "../../common/utils";
 
 import { Store } from "../../common/AppStore";
 import {
@@ -41,9 +41,23 @@ import "./Home.scss";
 
 const Home = () => {
   const { state, dispatch } = useContext(Store);
-  const { articles, userFeed, tagFilter, loading, tags } = state;
+  const {
+    articles,
+    articlesOffset,
+    articlesCount,
+    userFeed,
+    userFeedOffset,
+    userFeedCount,
+    tagFilter,
+    loading,
+    tags
+  } = state;
 
-  const [paginator, nextPage] = usePaginator(10);
+  const [paginator, nextPage] = usePaginator({ offset: articlesOffset });
+  const [feedPaginator, feedNextPage] = usePaginator({
+    offset: userFeedOffset
+  });
+
   const [section, setSection] = useState("global");
   const [showPopover, setShowPopover] = useState(false);
 
@@ -53,21 +67,29 @@ const Home = () => {
       payload: true
     });
 
-    const { data } = await ArticlesService.query(type, { ...paginator, tag });
-
-    switch (type) {
-      case 'feed':
-        dispatch({
-          type: FETCH_USER_ARTICLES_FEED,
-          payload: data.articles
-        });
-        break;
-      default:
-        dispatch({
-          type: FETCH_ARTICLES,
-          payload: data.articles
-        });
-        break;
+    if (type === "feed") {
+      const { data } = await ArticlesService.query(type, {
+        ...feedPaginator,
+        tag
+      });
+      dispatch({
+        type: FETCH_USER_ARTICLES_FEED,
+        payload: {
+          articles: data.articles,
+          offset: feedPaginator.offset,
+          articlesCount: data.articlesCount
+        }
+      });
+    } else {
+      const { data } = await ArticlesService.query(type, { ...paginator, tag });
+      dispatch({
+        type: FETCH_ARTICLES,
+        payload: {
+          articles: data.articles,
+          offset: paginator.offset,
+          articlesCount: data.articlesCount
+        }
+      });
     }
 
     dispatch({
@@ -94,7 +116,7 @@ const Home = () => {
       section === "personal" ? "feed" : "",
       section === "personal" ? null : tagFilter
     );
-  }, [paginator, tagFilter, section]);
+  }, [paginator, feedPaginator, tagFilter, section]);
 
   const handleSelectTag = tag => {
     dispatch({
@@ -110,6 +132,12 @@ const Home = () => {
       type: SET_TAG_FILTER,
       payload: null
     });
+  };
+
+  const hasMore = type => {
+    return type === "global"
+      ? articlesCount > articlesOffset + 10
+      : userFeedCount > userFeedOffset + 10;
   };
 
   const doRefresh = async evt => {
@@ -159,44 +187,61 @@ const Home = () => {
           <IonRefresherContent></IonRefresherContent>
         </IonRefresher>
 
-        <IonList lines="full">
-          {section === 'global' && articles.map(article => (
-            <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
-              <IonAvatar slot="start">
-                <img src={article.author.image} />
-              </IonAvatar>
-              <IonLabel>
-                <h2>{article.author.username}</h2>
-                <h3>{article.title}</h3>
-                <p>{article.description}</p>
-              </IonLabel>
-            </IonItem>
-          ))}
+        {section === "global" && (
+          <IonList lines="full">
+            {articles.map(article => (
+              <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
+                <IonAvatar slot="start">
+                  <img src={getProp(article, "author.image")} />
+                </IonAvatar>
+                <IonLabel>
+                  <h2>{article.author.username}</h2>
+                  <h3>{article.title}</h3>
+                  <p>{article.description}</p>
+                </IonLabel>
+              </IonItem>
+            ))}
+            {hasMore(section) && (
+              <IonButton
+                expand="full"
+                color="primary"
+                fill="clear"
+                onClick={nextPage}
+              >
+                Load more...
+              </IonButton>
+            )}
+          </IonList>
+        )}
 
-          {section === 'personal' && userFeed.map(article => (
-            <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
-              <IonAvatar slot="start">
-                <img src={article.author.image} />
-              </IonAvatar>
-              <IonLabel>
-                <h2>{article.author.username}</h2>
-                <h3>{article.title}</h3>
-                <p>{article.description}</p>
-              </IonLabel>
-            </IonItem>
-          ))}
+        {section === "personal" && (
+          <IonList lines="full">
+            {userFeed.map(article => (
+              <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
+                <IonAvatar slot="start">
+                  <img src={article.author.image} />
+                </IonAvatar>
+                <IonLabel>
+                  <h2>{article.author.username}</h2>
+                  <h3>{article.title}</h3>
+                  <p>{article.description}</p>
+                </IonLabel>
+              </IonItem>
+            ))}
+            {hasMore(section) && (
+              <IonButton
+                expand="full"
+                color="primary"
+                fill="clear"
+                onClick={feedNextPage}
+              >
+                Load more...
+              </IonButton>
+            )}
+          </IonList>
+        )}
 
-          {loading && <ListSkeleton items={3} />}
-        </IonList>
-
-        <IonButton
-          expand="full"
-          color="primary"
-          fill="clear"
-          onClick={nextPage}
-        >
-          Load more...
-        </IonButton>
+        {loading && <ListSkeleton items={3} />}
       </IonContent>
 
       <TagsPopover

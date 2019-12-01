@@ -25,7 +25,15 @@ import {
 import marked from "marked";
 import { formatDistanceToNow } from "date-fns";
 
-import { heartEmpty, heart, add, remove, chatboxes, create, trash } from "ionicons/icons";
+import {
+  heartEmpty,
+  heart,
+  add,
+  remove,
+  chatboxes,
+  create,
+  trash
+} from "ionicons/icons";
 
 import { getProp } from "../../common/utils";
 
@@ -35,7 +43,6 @@ import {
   SET_LOADING,
   FETCH_ARTICLE,
   FETCH_ARTICLE_COMMENTS,
-  FETCH_ARTICLES,
   FETCH_USER_ARTICLES_FEED,
   EDIT_ARTICLE,
   DELETE_ARTICLE
@@ -121,15 +128,17 @@ const Details = () => {
 
     dispatch({
       type: FETCH_USER_ARTICLES_FEED,
-      payload:
-        action === "post"
-          ? [article, ...userFeed]
-          : userFeed.filter(a => a === article)
+      payload: {
+        articles:
+          action === "post"
+            ? [article, ...userFeed]
+            : userFeed.filter(a => a === article)
+      }
     });
   };
 
   const isOwn = article => {
-    return getProp(article, 'author.username') === getProp(user , 'username');
+    return getProp(article, "author.username") === getProp(user, "username");
   };
 
   const handleEdit = article => {
@@ -143,7 +152,7 @@ const Details = () => {
     setShowAlert(true);
   };
 
-  const performDeletion = async() => {
+  const performDeletion = async () => {
     setShowAlert(false);
 
     await ArticlesService.destroy(article.slug);
@@ -169,7 +178,6 @@ const Details = () => {
             />
           </IonButtons>
           <IonButtons slot="end">
-            
             {!isOwn(article) && (
               <>
                 <IonButton color="light" size="large" onClick={handleFav}>
@@ -183,34 +191,41 @@ const Details = () => {
 
             {isOwn(article) && (
               <>
-                <IonButton color="light" size="large" onClick={() => handleEdit(article)}>
+                <IonButton
+                  color="light"
+                  size="large"
+                  onClick={() => handleEdit(article)}
+                >
                   <IonIcon icon={create} />
                 </IonButton>
-                <IonButton color="danger" size="large" onClick={() => handleDelete(article)}>
+                <IonButton
+                  color="danger"
+                  size="large"
+                  onClick={() => handleDelete(article)}
+                >
                   <IonIcon icon={trash} />
                 </IonButton>
               </>
             )}
-            
           </IonButtons>
         </IonToolbar>
 
-        <IonAlert 
+        <IonAlert
           isOpen={showAlert}
-          onDidDismiss={(e) => e.detail.role && performDeletion()}
-          header={'Delete Article'}
-          message={'are you sure that you want to delete this article?'}
+          onDidDismiss={e => e.detail.role && performDeletion()}
+          header={"Delete Article"}
+          message={"are you sure that you want to delete this article?"}
           buttons={[
             {
-              text: 'Yes',
+              text: "Yes",
               role: true
             },
             {
-              text: 'No',
+              text: "No",
               role: false
             }
-          ]}>
-        </IonAlert>
+          ]}
+        ></IonAlert>
 
         <PageHeader
           title={article.title}
@@ -268,13 +283,13 @@ const Details = () => {
         )}
 
         <CommentModal isOpen={isOpen} closeModal={() => setIsOpen(false)} />
-
-        <IonFab vertical="bottom" horizontal="end">
-          <IonFabButton onClick={() => setIsOpen(true)}>
-            <IonIcon icon={chatboxes} />
-          </IonFabButton>
-        </IonFab>
       </IonContent>
+
+      <IonFab vertical="bottom" horizontal="end">
+        <IonFabButton onClick={() => setIsOpen(true)}>
+          <IonIcon icon={chatboxes} />
+        </IonFabButton>
+      </IonFab>
     </IonPage>
   );
 };

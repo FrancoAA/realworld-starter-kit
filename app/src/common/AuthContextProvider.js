@@ -63,15 +63,12 @@ const AuthProvider = ({ children }) => {
   };
 
   const checkAuth = async() => {
-    console.log('checkAuth called');
     if (JwtService.getToken()) {
 
       ApiService.setHeader();
 
       try {
         const { data } = await ApiService.get('user');
-
-        console.log('checkAuth: ', data);
 
         dispatch({
           type: AUTH_FETCH_USER,

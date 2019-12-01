@@ -20,7 +20,7 @@ import {
 import { close } from 'ionicons/icons';
 
 import { Store } from './AppStore';
-import { FETCH_ARTICLES, CREATE_ARTICLE, UPDATE_ARTICLE } from './constants';
+import { CREATE_ARTICLE, UPDATE_ARTICLE } from './constants';
 import { getProp } from '../common/utils';
 import { ArticlesService } from '../common/api.service';
 
