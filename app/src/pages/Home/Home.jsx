@@ -28,7 +28,9 @@ import {
   SET_LOADING,
   SET_TAG_FILTER,
   FETCH_ARTICLES,
+  FETCH_NEXT_ARTICLES,
   FETCH_USER_ARTICLES_FEED,
+  FETCH_NEXT_USER_ARTICLES_FEED,
   FETCH_TAGS
 } from "../../common/constants";
 
@@ -61,36 +63,23 @@ const Home = () => {
   const [section, setSection] = useState("global");
   const [showPopover, setShowPopover] = useState(false);
 
+  // used in the initial fetch of the data
   async function fetchArticles(type, tag) {
     dispatch({
       type: SET_LOADING,
       payload: true
     });
 
-    if (type === "feed") {
-      const { data } = await ArticlesService.query(type, {
-        ...feedPaginator,
-        tag
-      });
-      dispatch({
-        type: FETCH_USER_ARTICLES_FEED,
-        payload: {
-          articles: data.articles,
-          offset: feedPaginator.offset,
-          articlesCount: data.articlesCount
-        }
-      });
-    } else {
-      const { data } = await ArticlesService.query(type, { ...paginator, tag });
-      dispatch({
-        type: FETCH_ARTICLES,
-        payload: {
-          articles: data.articles,
-          offset: paginator.offset,
-          articlesCount: data.articlesCount
-        }
-      });
-    }
+    const { data } = await ArticlesService.query(type, { tag });
+
+    dispatch({
+      type: type === "feed" ? FETCH_USER_ARTICLES_FEED : FETCH_ARTICLES,
+      payload: {
+        articles: data.articles,
+        articlesOffset: 0,
+        articlesCount: data.articlesCount
+      }
+    });
 
     dispatch({
       type: SET_LOADING,
@@ -98,6 +87,33 @@ const Home = () => {
     });
   }
 
+  // used when the user clicks to see the next page of results
+  async function paginateArticles(type, tag) {
+    dispatch({
+      type: SET_LOADING,
+      payload: true
+    });
+
+    const { data } = await ArticlesService.query(type, { tag, ...paginator });
+
+    dispatch({
+      type:
+        type === "feed" ? FETCH_NEXT_USER_ARTICLES_FEED : FETCH_NEXT_ARTICLES,
+      payload: {
+        articles: data.articles,
+        articlesOffset:
+          type === "feed" ? feedPaginator.offset : paginator.offset,
+        articlesCount: data.articlesCount
+      }
+    });
+
+    dispatch({
+      type: SET_LOADING,
+      payload: false
+    });
+  }
+
+  // Fetch tags
   useEffect(() => {
     async function fetchTags() {
       const { data } = await TagsService.get();
@@ -111,12 +127,29 @@ const Home = () => {
     fetchTags();
   }, []);
 
+  // initial load
   useEffect(() => {
+    console.log("Fetch articles called!");
     fetchArticles(
       section === "personal" ? "feed" : "",
       section === "personal" ? null : tagFilter
     );
-  }, [paginator, feedPaginator, tagFilter, section]);
+  }, [tagFilter, section]);
+
+  // paginate
+  useEffect(() => {
+    if (
+      (section === "personal" && feedPaginator.offset === 0) ||
+      (section === "global" && paginator.offset === 0)
+    ) {
+      return;
+    }
+    console.log('paginateArticles called!');
+    paginateArticles(
+      section === "personal" ? "feed" : "",
+      section === "personal" ? null : tagFilter
+    );
+  }, [paginator, feedPaginator]);
 
   const handleSelectTag = tag => {
     dispatch({

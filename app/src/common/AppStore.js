@@ -11,9 +11,11 @@ import {
   AUTH_FETCH_USER,
   FETCH_ARTICLE,
   FETCH_ARTICLES,
+  FETCH_NEXT_ARTICLES,
   FETCH_ARTICLE_COMMENTS,
   FETCH_USER_ARTICLES,
   FETCH_USER_ARTICLES_FEED,
+  FETCH_NEXT_USER_ARTICLES_FEED,
   FETCH_USER_FAVORITED_ARTICLES,
   FETCH_TAGS,
   CREATE_ARTICLE,
@@ -72,8 +74,14 @@ function reducer(state, { type, payload }) {
     case FETCH_ARTICLES:
       return {
         ...state,
+        articles: payload.articles,
+        articlesCount: payload.articlesCount
+      };
+    case FETCH_NEXT_ARTICLES:
+      return {
+        ...state,
         articles: [...state.articles, ...payload.articles],
-        articlesOffset: payload.offset,
+        articlesOffset: payload.articlesOffset,
         articlesCount: payload.articlesCount
       };
     case FETCH_ARTICLE:
@@ -83,13 +91,22 @@ function reducer(state, { type, payload }) {
 
     case FETCH_USER_ARTICLES:
       return { ...state, userArticles: payload };
+
     case FETCH_USER_ARTICLES_FEED:
       return {
         ...state,
-        userFeed: [...state.userFeed, ...payload.articles],
-        userFeedOffset: payload.offset,
+        userFeed: payload.articles,
+        userFeedOffset: payload.articlesOffset,
         userFeedCount: payload.articlesCount
       };
+    case FETCH_NEXT_USER_ARTICLES_FEED:
+      return {
+        ...state,
+        userFeed: [...state.articles, ...payload.articles],
+        userFeedOffset: payload.articlesOffset,
+        userFeedCount: payload.articlesCount
+      };
+
     case FETCH_USER_FAVORITED_ARTICLES:
       return { ...state, userFavorited: payload };
 
