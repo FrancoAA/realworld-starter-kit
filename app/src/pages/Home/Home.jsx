@@ -55,10 +55,8 @@ const Home = () => {
     tags
   } = state;
 
-  const [paginator, nextPage] = usePaginator({ offset: articlesOffset });
-  const [feedPaginator, feedNextPage] = usePaginator({
-    offset: userFeedOffset
-  });
+  const [paginator, nextPage] = usePaginator();
+  const [feedPaginator, feedNextPage] = usePaginator();
 
   const [section, setSection] = useState("global");
   const [showPopover, setShowPopover] = useState(false);
@@ -70,7 +68,8 @@ const Home = () => {
       payload: true
     });
 
-    const { data } = await ArticlesService.query(type, { tag });
+    const params = type === 'feed' ? feedPaginator : paginator;
+    const { data } = await ArticlesService.query(type, { ...params, tag });
 
     dispatch({
       type: type === "feed" ? FETCH_USER_ARTICLES_FEED : FETCH_ARTICLES,
@@ -127,29 +126,24 @@ const Home = () => {
     fetchTags();
   }, []);
 
-  // initial load
+  // fetch articles
   useEffect(() => {
-    console.log("Fetch articles called!");
-    fetchArticles(
-      section === "personal" ? "feed" : "",
-      section === "personal" ? null : tagFilter
-    );
-  }, [tagFilter, section]);
-
-  // paginate
-  useEffect(() => {
+    // Initial load
     if (
       (section === "personal" && feedPaginator.offset === 0) ||
       (section === "global" && paginator.offset === 0)
     ) {
+      fetchArticles('', tagFilter);
+      fetchArticles('feed');
       return;
     }
-    console.log('paginateArticles called!');
+
+    // user clicked next
     paginateArticles(
       section === "personal" ? "feed" : "",
       section === "personal" ? null : tagFilter
     );
-  }, [paginator, feedPaginator]);
+  }, [paginator, feedPaginator, tagFilter]);
 
   const handleSelectTag = tag => {
     dispatch({

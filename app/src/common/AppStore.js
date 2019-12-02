@@ -122,15 +122,20 @@ function reducer(state, { type, payload }) {
         article: payload
       };
     case UPDATE_ARTICLE:
+      // update the article if it is in the state.articles
       const articlesCopy = [...state.articles];
       const index = articlesCopy.findIndex(a => a.slug === payload.slug);
-      articlesCopy[index] = payload;
-      return {
-        ...state,
-        edit: false,
-        article: payload,
-        articles: [...articlesCopy]
-      };
+      if (index >= 0) {
+        articlesCopy[index] = payload;
+        return {
+          ...state,
+          edit: false,
+          article: payload,
+          articles: [...articlesCopy]
+        };
+      }
+      // do nothing if it is not in the state.articles
+      return { ...state, edit: false, article: payload };
     case DELETE_ARTICLE:
       const removeArticleFn = a => a.slug !== payload.slug;
       const filteredUserArticles = state.userArticles.filter(removeArticleFn);

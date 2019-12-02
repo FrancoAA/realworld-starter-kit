@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-export function usePaginator({ offset, pageSize }) {
-  const [paginator, setPaginator] = useState({ offset: offset || 0, limit: pageSize || 10 });
+export function usePaginator() {
+  const [paginator, setPaginator] = useState({ offset: 0, limit: 10 });
 
   const nextPage = () => {
     setPaginator(prev => ({

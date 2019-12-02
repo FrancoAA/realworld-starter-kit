@@ -56,9 +56,7 @@ const ComposeModal = ({ closeModal }) => {
       },
       ...formData
     };
-    
-    console.log('Article: ', article);
-    
+
     if (!edit) {
       const { data } = await ArticlesService.create(article);
       dispatch({
@@ -70,7 +68,7 @@ const ComposeModal = ({ closeModal }) => {
       dispatch({
         type: UPDATE_ARTICLE,
         payload: data.article
-      }); 
+      });
     }
 
     closeModal();
