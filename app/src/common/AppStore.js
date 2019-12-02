@@ -23,7 +23,8 @@ import {
   UPDATE_ARTICLE,
   DELETE_ARTICLE,
   OPEN_COMPOSE_MODAL,
-  CLOSE_COMPOSE_MODAL
+  CLOSE_COMPOSE_MODAL,
+  DELETE_COMMENT
 } from "./constants";
 
 export const Store = createContext();
@@ -150,6 +151,9 @@ function reducer(state, { type, payload }) {
       return { ...state, showComposeModal: true };
     case CLOSE_COMPOSE_MODAL:
       return { ...state, edit: false, showComposeModal: false };
+    
+    case DELETE_COMMENT:
+      return { ...state, comments: state.comments.filter(c => c.id !== payload.id) };
 
     default:
       return state;

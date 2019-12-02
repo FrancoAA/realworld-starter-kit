@@ -19,7 +19,10 @@ import {
   IonIcon,
   IonFab,
   IonFabButton,
-  IonAlert
+  IonAlert,
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption
 } from "@ionic/react";
 
 import marked from "marked";
@@ -45,7 +48,8 @@ import {
   FETCH_ARTICLE_COMMENTS,
   FETCH_USER_ARTICLES_FEED,
   EDIT_ARTICLE,
-  DELETE_ARTICLE
+  DELETE_ARTICLE,
+  DELETE_COMMENT
 } from "../../common/constants";
 
 import ApiService, {
@@ -57,6 +61,7 @@ import PageHeader from "../../common/PageHeader/PageHeader";
 import CommentModal from "./components/CommentModal";
 
 import "./Details.scss";
+import ConfirmDeletion from "./components/ConfirmDeletion";
 
 const Details = () => {
   const { slug } = useParams();
@@ -64,8 +69,14 @@ const Details = () => {
   const { user, article, comments, userFeed } = state;
   const [section, setSection] = useState("article");
   const [isOpen, setIsOpen] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
+  const [showAlert, setShowAlert] = useState({
+    isOpen: false,
+    mode: '',
+    title : '',
+    message: '',
+  });
 
+  let title, message, mode;
   let history = useHistory();
 
   useEffect(() => {
@@ -137,8 +148,8 @@ const Details = () => {
     });
   };
 
-  const isOwn = article => {
-    return getProp(article, "author.username") === getProp(user, "username");
+  const isOwn = object => {
+    return getProp(object, "author.username") === getProp(user, "username");
   };
 
   const handleEdit = article => {
@@ -148,12 +159,29 @@ const Details = () => {
     });
   };
 
-  const handleDelete = () => {
-    setShowAlert(true);
+  const handleDeleteArticle = () => {
+    setShowAlert({
+      isOpen: true,
+      mode: 'article',
+      title: 'Delete Article',
+      message: 'Are you sure that you want to delete this article?',
+      action: () => deleteArticle(article)
+    });
   };
 
-  const performDeletion = async () => {
-    setShowAlert(false);
+  const handleDeleteComment = (comment) => {
+    console.log('handleDeleteComment called!');
+    setShowAlert({
+      isOpen: true,
+      mode: 'comment',
+      title: 'Delete Comment',
+      message: 'Are you sure that you want to delete this comment?',
+      action: () => deleteComment(article, comment)
+    });
+  }
+
+  const deleteArticle = async (article) => {
+    setShowAlert(prev => ({ ...prev, isOpen: false }));
 
     await ArticlesService.destroy(article.slug);
 
@@ -163,6 +191,17 @@ const Details = () => {
     });
 
     history.goBack();
+  };
+
+  const deleteComment = async (article, comment) => {
+    setShowAlert(prev => ({ ...prev, isOpen: false }));
+
+    await CommentsService.destroy(article.slug, comment.id);
+
+    dispatch({
+      type: DELETE_COMMENT,
+      payload: comment
+    });
   };
 
   return (
@@ -180,17 +219,21 @@ const Details = () => {
           <IonButtons slot="end">
             {!isOwn(article) && (
               <>
-                <IonButton color="light" size="large" onClick={handleFav}>
-                  <IonIcon icon={article.favorited ? heart : heartEmpty} />
-                </IonButton>
+                {/* Follow button */}
                 <IonButton color="light" size="large" onClick={handleFollow}>
                   <IonIcon icon={isFollowing(article) ? remove : add} />
+                </IonButton>
+                {/* Fav button */}
+                <IonButton color="light" size="large" onClick={handleFav}>
+                  <IonIcon slot="start" icon={article.favorited ? heart : heartEmpty} />
+                  {article.favoritesCount > 0 && article.favoritesCount}
                 </IonButton>
               </>
             )}
 
             {isOwn(article) && (
               <>
+                {/* Edit article */}
                 <IonButton
                   color="light"
                   size="large"
@@ -198,10 +241,11 @@ const Details = () => {
                 >
                   <IonIcon icon={create} />
                 </IonButton>
+                {/* Delete article */}
                 <IonButton
                   color="danger"
                   size="large"
-                  onClick={() => handleDelete(article)}
+                  onClick={() => handleDeleteArticle(article)}
                 >
                   <IonIcon icon={trash} />
                 </IonButton>
@@ -210,22 +254,7 @@ const Details = () => {
           </IonButtons>
         </IonToolbar>
 
-        <IonAlert
-          isOpen={showAlert}
-          onDidDismiss={e => e.detail.role && performDeletion()}
-          header={"Delete Article"}
-          message={"are you sure that you want to delete this article?"}
-          buttons={[
-            {
-              text: "Yes",
-              role: true
-            },
-            {
-              text: "No",
-              role: false
-            }
-          ]}
-        ></IonAlert>
+        <ConfirmDeletion {...showAlert} />
 
         <PageHeader
           title={article.title}
@@ -262,14 +291,27 @@ const Details = () => {
           <IonList>
             {comments.length > 0 &&
               comments.map(comment => (
-                <IonItem key={comment.id} lines="full">
-                  <IonAvatar slot="start">
-                    <img src={comment.author.image} alt="avatar" />
-                  </IonAvatar>
-                  <IonLabel className="ion-text-wrap">
-                    <p>{comment.body}</p>
-                  </IonLabel>
-                </IonItem>
+                <IonItemSliding key={comment.id}>
+
+                  <IonItem lines="full">
+                    <IonAvatar slot="start">
+                      <img src={comment.author.image} alt="avatar" />
+                    </IonAvatar>
+                    <IonLabel className="ion-text-wrap">
+                      <h2>{comment.author.username} <small>{formatDistanceToNow(new Date(comment.createdAt))}</small></h2>
+                      <p>{comment.body}</p>
+                    </IonLabel>
+                  </IonItem>
+
+                  {isOwn(comment) && (
+                    <IonItemOptions side="end">
+                      <IonItemOption color="danger" onClick={() => handleDeleteComment(comment)}>
+                        <IonIcon slot="top" icon={trash}/>
+                        Delete
+                      </IonItemOption>
+                    </IonItemOptions>
+                  )}
+                </IonItemSliding>
               ))}
 
             {!comments.length && (

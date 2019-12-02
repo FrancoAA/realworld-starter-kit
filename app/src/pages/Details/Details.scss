@@ -1,4 +1,9 @@
 .Details {
+  h2 {
+    small {
+      opacity: 0.5;
+    }
+  }
   ion-toolbar.controls {
     position: absolute;
     top: 0px;
