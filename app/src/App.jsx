@@ -10,7 +10,7 @@ import {
   IonTabs,
   IonFab,
   IonFabButton,
-  IonButton
+  IonLoading
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { apps, flash, send, home, search, contact, add, create } from 'ionicons/icons';
@@ -46,7 +46,8 @@ import { AuthProvider } from './common/AuthContextProvider';
 
 const App = () =>  {
   const { state, dispatch } = useContext(Store);
-
+  const { loading } = state;
+ 
   const showComposeModal = () => {
     dispatch({
       type: OPEN_COMPOSE_MODAL
@@ -64,6 +65,8 @@ const App = () =>  {
         <IonApp>
           <LoginWithAuth protectedComponent={
             <>
+              <IonLoading isOpen={loading} message={'Loading...'}/>
+
               <ComposeModal closeModal={closeComposeModal}/>
 
               <IonFab horizontal="center" vertical="bottom">

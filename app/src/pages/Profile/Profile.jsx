@@ -23,12 +23,12 @@ import "./Profile.scss";
 
 import { Store } from "../../common/AppStore";
 import {
+  SET_LOADING,
   FETCH_USER_ARTICLES,
   FETCH_USER_FAVORITED_ARTICLES
 } from "../../common/constants";
 import { ArticlesService } from "../../common/api.service";
 
-import ListSkeleton from "../../common/ListSkeleton";
 import EditProfileModal from "./components/EditProfileModal";
 
 const Profile = () => {
@@ -39,6 +39,11 @@ const Profile = () => {
 
   useEffect(() => {
     async function fetchUserArticles() {
+      dispatch({
+        type: SET_LOADING,
+        payload: true
+      });
+
       const { data } = await ArticlesService.query("", {
         author: user.username
       });
@@ -47,9 +52,15 @@ const Profile = () => {
         type: FETCH_USER_ARTICLES,
         payload: data.articles
       });
+
+      dispatch({
+        type: SET_LOADING,
+        payload: false
+      });
     }
 
     async function fetchUserFavoritedArticles() {
+
       const { data } = await ArticlesService.query("", {
         favorited: user.username
       });

@@ -69,14 +69,8 @@ const Details = () => {
   const { user, article, comments, userFeed } = state;
   const [section, setSection] = useState("article");
   const [isOpen, setIsOpen] = useState(false);
-  const [showAlert, setShowAlert] = useState({
-    isOpen: false,
-    mode: '',
-    title : '',
-    message: '',
-  });
+  const [showAlert, setShowAlert] = useState(false);
 
-  let title, message, mode;
   let history = useHistory();
 
   useEffect(() => {
@@ -160,28 +154,20 @@ const Details = () => {
   };
 
   const handleDeleteArticle = () => {
-    setShowAlert({
-      isOpen: true,
-      mode: 'article',
-      title: 'Delete Article',
-      message: 'Are you sure that you want to delete this article?',
-      action: () => deleteArticle(article)
-    });
+    setShowAlert(true);
   };
 
-  const handleDeleteComment = (comment) => {
-    console.log('handleDeleteComment called!');
-    setShowAlert({
-      isOpen: true,
-      mode: 'comment',
-      title: 'Delete Comment',
-      message: 'Are you sure that you want to delete this comment?',
-      action: () => deleteComment(article, comment)
+  const handleDeleteComment = async (comment) => {
+    await CommentsService.destroy(article.slug, comment.id);
+
+    dispatch({
+      type: DELETE_COMMENT,
+      payload: comment
     });
   }
 
   const deleteArticle = async (article) => {
-    setShowAlert(prev => ({ ...prev, isOpen: false }));
+    setShowAlert(false);
 
     await ArticlesService.destroy(article.slug);
 
@@ -191,17 +177,6 @@ const Details = () => {
     });
 
     history.goBack();
-  };
-
-  const deleteComment = async (article, comment) => {
-    setShowAlert(prev => ({ ...prev, isOpen: false }));
-
-    await CommentsService.destroy(article.slug, comment.id);
-
-    dispatch({
-      type: DELETE_COMMENT,
-      payload: comment
-    });
   };
 
   return (
@@ -254,7 +229,22 @@ const Details = () => {
           </IonButtons>
         </IonToolbar>
 
-        <ConfirmDeletion {...showAlert} />
+        <IonAlert
+          isOpen={showAlert}
+          onDidDismiss={e => e.detail.role && deleteArticle()}
+          header={"Delete Article"}
+          message={"Are you sure that you want to delete this article?"}
+          buttons={[
+            {
+              text: "Yes",
+              role: true
+            },
+            {
+              text: "No",
+              role: false
+            }
+          ]}
+        ></IonAlert>
 
         <PageHeader
           title={article.title}
