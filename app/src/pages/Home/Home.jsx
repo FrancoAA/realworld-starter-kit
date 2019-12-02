@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
+import { formatDistanceToNow } from 'date-fns';
 
 import {
   IonContent,
@@ -222,7 +223,7 @@ const Home = () => {
                   <img src={getProp(article, "author.image")} />
                 </IonAvatar>
                 <IonLabel>
-                  <h2>{article.author.username}</h2>
+                  <h2>{article.author.username} <small>{formatDistanceToNow(new Date(article.createdAt))}</small></h2>
                   <h3>{article.title}</h3>
                   <p>{article.description}</p>
                 </IonLabel>
@@ -249,7 +250,7 @@ const Home = () => {
                   <img src={article.author.image} />
                 </IonAvatar>
                 <IonLabel>
-                  <h2>{article.author.username}</h2>
+                  <h2>{article.author.username} <small>{formatDistanceToNow(new Date(article.createdAt))}</small></h2>
                   <h3>{article.title}</h3>
                   <p>{article.description}</p>
                 </IonLabel>
