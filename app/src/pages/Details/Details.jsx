@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
+import { useQuery, usePaginatedQuery, useMutation } from 'react-query';
 import { useParams, useHistory } from "react-router-dom";
 
 import {
@@ -66,44 +67,22 @@ import ConfirmDeletion from "./components/ConfirmDeletion";
 const Details = () => {
   const { slug } = useParams();
   const { state, dispatch } = useContext(Store);
-  const { user, article, comments, userFeed } = state;
+  const { user } = state;
   const [section, setSection] = useState("article");
   const [isOpen, setIsOpen] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
 
+  const { isLoading, data: articleData } = useQuery(['article', slug], (_, slug) => ArticlesService.get(slug));
+  const { data: userFeedData } = useQuery('feed', (_) => ArticlesService.query('feed'));
+  const { data: commentsData } = useQuery(['comments', slug], (_, slug) => CommentsService.get(slug), {
+    enabled: articleData
+  });
+  const [addToFav] = useMutation(FavoriteService.add);
+  const [removeFromFav] = useMutation(FavoriteService.remove);
+  // const [] = useMutation(followUser);
+  // const [] = useMutation(unFollowUser);
+
   let history = useHistory();
-
-  useEffect(() => {
-    async function fetchArticle() {
-      dispatch({
-        type: SET_LOADING,
-        payload: true
-      });
-
-      const { data } = await ArticlesService.get(slug);
-
-      dispatch({
-        type: FETCH_ARTICLE,
-        payload: data.article
-      });
-
-      dispatch({
-        type: SET_LOADING,
-        payload: false
-      });
-    }
-
-    async function fetchArticleComments() {
-      const { data } = await CommentsService.get(slug);
-      dispatch({
-        type: FETCH_ARTICLE_COMMENTS,
-        payload: data.comments
-      });
-    }
-
-    fetchArticle();
-    fetchArticleComments();
-  }, []);
 
   const getMarkdownText = markdown => {
     var rawMarkup = marked(markdown, { sanitize: true });
@@ -178,6 +157,10 @@ const Details = () => {
 
     history.goBack();
   };
+
+  const article = getProp(articleData, 'data.article') || {};
+  const userFeed = getProp(userFeedData, 'data.articles') || [];
+  const comments = getProp(commentsData , 'data.comments') || [];
 
   return (
     <IonPage className="Details">
@@ -314,7 +297,7 @@ const Details = () => {
           </IonList>
         )}
 
-        <CommentModal isOpen={isOpen} closeModal={() => setIsOpen(false)} />
+        <CommentModal isOpen={isOpen} article={article} closeModal={() => setIsOpen(false)} />
       </IonContent>
 
       <IonFab vertical="bottom" horizontal="end">
