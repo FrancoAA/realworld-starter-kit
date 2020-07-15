@@ -5,8 +5,8 @@ export function usePaginator() {
 
   const nextPage = () => {
     setPaginator(prev => ({
-      offset: prev.offset + prev.limit,
-      limit: prev.limit
+      offset: 0,
+      limit: prev.limit + 10
     }));
   };
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { useQuery, usePaginatedQuery, useInfiniteQuery } from "react-query";
+import { useQuery, usePaginatedQuery } from "react-query";
 
 import {
   IonContent,
@@ -45,27 +45,16 @@ const Home = () => {
   const { state, dispatch } = useContext(Store);
   const { tagFilter } = state;
 
-  const { isLoading, resolvedData: articlesData, fetchMore: fetchMoreArticles } = usePaginatedQuery(
+  const { isLoading, resolvedData: articlesData } = usePaginatedQuery(
     ["articles", {...articlePaginator, tagFilter }],
-    (_, params) => ArticlesService.query("", params),
-    {
-      getFetchMore: lastGroup => {
-        return true;
-      }
-    }
+    (_, params) => ArticlesService.query("", params)
   );
 
   const {
     isLoading: feedIsLoading,
-    resolvedData: feedArticlesData,
-    fetchMore: fetchMoreFeedArticles
+    resolvedData: feedArticlesData
   } = usePaginatedQuery(["feed", {...feedPaginator }], (_, params) =>
-    ArticlesService.query("feed", params),
-    {
-      getFetchMore: lastGroup => {
-        return true;
-      }
-    }
+    ArticlesService.query("feed", params)
   );
 
   const { data: tagsData } = useQuery('tags', TagsService.get);
