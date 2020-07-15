@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from "date-fns";
+import { useQuery, usePaginatedQuery, useInfiniteQuery } from "react-query";
 
 import {
   IonContent,
@@ -18,7 +19,7 @@ import {
   IonHeader,
   IonChip,
   IonRefresher,
-  IonRefresherContent
+  IonRefresherContent,
 } from "@ionic/react";
 
 import { closeCircle, funnel } from "ionicons/icons";
@@ -26,13 +27,7 @@ import { usePaginator, getProp } from "../../common/utils";
 
 import { Store } from "../../common/AppStore";
 import {
-  SET_LOADING,
   SET_TAG_FILTER,
-  FETCH_ARTICLES,
-  FETCH_NEXT_ARTICLES,
-  FETCH_USER_ARTICLES_FEED,
-  FETCH_NEXT_USER_ARTICLES_FEED,
-  FETCH_TAGS
 } from "../../common/constants";
 
 import { ArticlesService, TagsService } from "../../common/api.service";
@@ -43,113 +38,42 @@ import TagsPopover from "./components/TagsPopover";
 import "./Home.scss";
 
 const Home = () => {
-  const { state, dispatch } = useContext(Store);
-  const {
-    articles,
-    articlesOffset,
-    articlesCount,
-    userFeed,
-    userFeedOffset,
-    userFeedCount,
-    tagFilter,
-    loading,
-    tags
-  } = state;
-
-  const [paginator, nextPage] = usePaginator();
-  const [feedPaginator, feedNextPage] = usePaginator();
-
   const [section, setSection] = useState("global");
+  const [articlePaginator, articlesNextPage] = usePaginator();
+  const [feedPaginator, feedNextPage] = usePaginator();
   const [showPopover, setShowPopover] = useState(false);
+  const { state, dispatch } = useContext(Store);
+  const { tagFilter } = state;
 
-  // used in the initial fetch of the data
-  async function fetchArticles(type, tag) {
-    dispatch({
-      type: SET_LOADING,
-      payload: true
-    });
-
-    const params = type === 'feed' ? feedPaginator : paginator;
-    const { data } = await ArticlesService.query(type, { ...params, tag });
-
-    dispatch({
-      type: type === "feed" ? FETCH_USER_ARTICLES_FEED : FETCH_ARTICLES,
-      payload: {
-        articles: data.articles,
-        articlesOffset: 0,
-        articlesCount: data.articlesCount
+  const { isLoading, resolvedData: articlesData, fetchMore: fetchMoreArticles } = usePaginatedQuery(
+    ["articles", {...articlePaginator, tagFilter }],
+    (_, params) => ArticlesService.query("", params),
+    {
+      getFetchMore: lastGroup => {
+        return true;
       }
-    });
+    }
+  );
 
-    dispatch({
-      type: SET_LOADING,
-      payload: false
-    });
-  }
-
-  // used when the user clicks to see the next page of results
-  async function paginateArticles(type, tag) {
-    dispatch({
-      type: SET_LOADING,
-      payload: true
-    });
-
-    const { data } = await ArticlesService.query(type, { tag, ...paginator });
-
-    dispatch({
-      type:
-        type === "feed" ? FETCH_NEXT_USER_ARTICLES_FEED : FETCH_NEXT_ARTICLES,
-      payload: {
-        articles: data.articles,
-        articlesOffset:
-          type === "feed" ? feedPaginator.offset : paginator.offset,
-        articlesCount: data.articlesCount
+  const {
+    isLoading: feedIsLoading,
+    resolvedData: feedArticlesData,
+    fetchMore: fetchMoreFeedArticles
+  } = usePaginatedQuery(["feed", {...feedPaginator }], (_, params) =>
+    ArticlesService.query("feed", params),
+    {
+      getFetchMore: lastGroup => {
+        return true;
       }
-    });
-
-    dispatch({
-      type: SET_LOADING,
-      payload: false
-    });
-  }
-
-  // Fetch tags
-  useEffect(() => {
-    async function fetchTags() {
-      const { data } = await TagsService.get();
-
-      dispatch({
-        type: FETCH_TAGS,
-        payload: data.tags
-      });
     }
+  );
 
-    fetchTags();
-  }, []);
+  const { data: tagsData } = useQuery('tags', TagsService.get);
 
-  // fetch articles
-  useEffect(() => {
-    // Initial load
-    if (
-      (section === "personal" && feedPaginator.offset === 0) ||
-      (section === "global" && paginator.offset === 0)
-    ) {
-      fetchArticles('', tagFilter);
-      fetchArticles('feed');
-      return;
-    }
-
-    // user clicked next
-    paginateArticles(
-      section === "personal" ? "feed" : "",
-      section === "personal" ? null : tagFilter
-    );
-  }, [paginator, feedPaginator, tagFilter]);
-
-  const handleSelectTag = tag => {
+  const handleSelectTag = (tag) => {
     dispatch({
       type: SET_TAG_FILTER,
-      payload: tag
+      payload: tag,
     });
 
     setShowPopover(false);
@@ -158,23 +82,18 @@ const Home = () => {
   const clearFilters = () => {
     dispatch({
       type: SET_TAG_FILTER,
-      payload: null
+      payload: null,
     });
   };
 
-  const hasMore = type => {
-    return type === "global"
-      ? articlesCount > articlesOffset + 10
-      : userFeedCount > userFeedOffset + 10;
-  };
-
-  const doRefresh = async evt => {
-    await fetchArticles(
-      section === "personal" ? "feed" : "",
-      section === "personal" ? null : tagFilter
-    );
+  const doRefresh = async (evt) => {
+    // TODO
     evt.detail.complete();
   };
+
+  const articles = getProp(articlesData, 'data.articles', []);
+  const userFeed = getProp(feedArticlesData, 'data.articles', []);
+  const tags = getProp(tagsData, 'data.tags', []);
 
   return (
     <IonPage className="Home">
@@ -189,7 +108,7 @@ const Home = () => {
         </IonToolbar>
 
         <IonToolbar color="light">
-          <IonSegment onIonChange={e => setSection(e.detail.value)}>
+          <IonSegment onIonChange={(e) => setSection(e.detail.value)}>
             <IonSegmentButton value="global" checked={section === "global"}>
               <IonLabel>Global Feed</IonLabel>
             </IonSegmentButton>
@@ -223,53 +142,63 @@ const Home = () => {
                   <img src={getProp(article, "author.image")} />
                 </IonAvatar>
                 <IonLabel>
-                  <h2>{article.author.username} <small>{formatDistanceToNow(new Date(article.createdAt))}</small></h2>
+                  <h2>
+                    {article.author.username}{" "}
+                    <small>
+                      {formatDistanceToNow(new Date(article.createdAt))}
+                    </small>
+                  </h2>
                   <h3>{article.title}</h3>
                   <p>{article.description}</p>
                 </IonLabel>
               </IonItem>
             ))}
-            {hasMore(section) && (
-              <IonButton
-                expand="full"
-                color="primary"
-                fill="clear"
-                onClick={nextPage}
-              >
-                Load more...
-              </IonButton>
-            )}
+
+            <IonButton
+              expand="full"
+              color="primary"
+              fill="clear"
+              onClick={articlesNextPage}
+            >
+              Load more...
+            </IonButton>
+
           </IonList>
         )}
 
         {section === "personal" && (
           <IonList lines="full">
-            {userFeed.map(article => (
+            {userFeed.map((article) => (
               <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
                 <IonAvatar slot="start">
                   <img src={article.author.image} />
                 </IonAvatar>
                 <IonLabel>
-                  <h2>{article.author.username} <small>{formatDistanceToNow(new Date(article.createdAt))}</small></h2>
+                  <h2>
+                    {article.author.username}{" "}
+                    <small>
+                      {formatDistanceToNow(new Date(article.createdAt))}
+                    </small>
+                  </h2>
                   <h3>{article.title}</h3>
                   <p>{article.description}</p>
                 </IonLabel>
               </IonItem>
             ))}
-            {hasMore(section) && (
-              <IonButton
-                expand="full"
-                color="primary"
-                fill="clear"
-                onClick={feedNextPage}
-              >
-                Load more...
-              </IonButton>
-            )}
+
+            <IonButton
+              expand="full"
+              color="primary"
+              fill="clear"
+              onClick={feedNextPage}
+            >
+              Load more...
+            </IonButton>
+
           </IonList>
         )}
 
-        {loading && <ListSkeleton items={3} />}
+        {isLoading && <ListSkeleton items={3} />}
       </IonContent>
 
       <TagsPopover
