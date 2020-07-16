@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
+import {useIsFetching} from 'react-query';
 import { formatDistanceToNow } from "date-fns";
-import { useQuery, usePaginatedQuery } from "react-query";
 
 import {
   IonContent,
@@ -23,14 +23,12 @@ import {
 } from "@ionic/react";
 
 import { closeCircle, funnel } from "ionicons/icons";
-import { usePaginator, getProp } from "../../common/utils";
+import { getProp } from "../../common/utils";
 
 import { Store } from "../../common/AppStore";
-import {
-  SET_TAG_FILTER,
-} from "../../common/constants";
+import { useArticles, useFeed, useTags, useIsLoading } from '../../common/hooks';
 
-import { ArticlesService, TagsService } from "../../common/api.service";
+import { SET_TAG_FILTER } from "../../common/constants";
 
 import ListSkeleton from "../../common/ListSkeleton";
 import TagsPopover from "./components/TagsPopover";
@@ -38,26 +36,15 @@ import TagsPopover from "./components/TagsPopover";
 import "./Home.scss";
 
 const Home = () => {
+  const isLoading = useIsLoading();
   const [section, setSection] = useState("global");
-  const [articlePaginator, articlesNextPage] = usePaginator();
-  const [feedPaginator, feedNextPage] = usePaginator();
   const [showPopover, setShowPopover] = useState(false);
   const { state, dispatch } = useContext(Store);
   const { tagFilter } = state;
 
-  const { isLoading, resolvedData: articlesData } = usePaginatedQuery(
-    ["articles", {...articlePaginator, tagFilter }],
-    (_, params) => ArticlesService.query("", params)
-  );
-
-  const {
-    isLoading: feedIsLoading,
-    resolvedData: feedArticlesData
-  } = usePaginatedQuery(["feed", {...feedPaginator }], (_, params) =>
-    ArticlesService.query("feed", params)
-  );
-
-  const { data: tagsData } = useQuery('tags', TagsService.get);
+  const { resolvedData: articles, nextPage: articlesNextPage, refetch } = useArticles(tagFilter);
+  const { data: userFeed } = useFeed();
+  const { data: tags } = useTags();
 
   const handleSelectTag = (tag) => {
     dispatch({
@@ -76,13 +63,9 @@ const Home = () => {
   };
 
   const doRefresh = async (evt) => {
-    // TODO
+    await refetch();
     evt.detail.complete();
   };
-
-  const articles = getProp(articlesData, 'data.articles', []);
-  const userFeed = getProp(feedArticlesData, 'data.articles', []);
-  const tags = getProp(tagsData, 'data.tags', []);
 
   return (
     <IonPage className="Home">
@@ -122,80 +105,81 @@ const Home = () => {
         <IonRefresher slot="fixed" onIonRefresh={doRefresh}>
           <IonRefresherContent></IonRefresherContent>
         </IonRefresher>
-
-        {section === "global" && (
-          <IonList lines="full">
-            {articles.map(article => (
-              <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
-                <IonAvatar slot="start">
-                  <img src={getProp(article, "author.image")} />
-                </IonAvatar>
-                <IonLabel>
-                  <h2>
-                    {article.author.username}{" "}
-                    <small>
-                      {formatDistanceToNow(new Date(article.createdAt))}
-                    </small>
-                  </h2>
-                  <h3>{article.title}</h3>
-                  <p>{article.description}</p>
-                </IonLabel>
-              </IonItem>
-            ))}
-
-            <IonButton
-              expand="full"
-              color="primary"
-              fill="clear"
-              onClick={articlesNextPage}
-            >
-              Load more...
-            </IonButton>
-
-          </IonList>
-        )}
-
-        {section === "personal" && (
-          <IonList lines="full">
-            {userFeed.map((article) => (
-              <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
-                <IonAvatar slot="start">
-                  <img src={article.author.image} />
-                </IonAvatar>
-                <IonLabel>
-                  <h2>
-                    {article.author.username}{" "}
-                    <small>
-                      {formatDistanceToNow(new Date(article.createdAt))}
-                    </small>
-                  </h2>
-                  <h3>{article.title}</h3>
-                  <p>{article.description}</p>
-                </IonLabel>
-              </IonItem>
-            ))}
-
-            <IonButton
-              expand="full"
-              color="primary"
-              fill="clear"
-              onClick={feedNextPage}
-            >
-              Load more...
-            </IonButton>
-
-          </IonList>
+        {!isLoading && (
+          <>
+            {section === "global" && (
+              <IonList lines="full">
+                {articles && articles.map((article) => (
+                  <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
+                    <IonAvatar slot="start">
+                      <img src={getProp(article, "author.image")} />
+                    </IonAvatar>
+                    <IonLabel>
+                      <h2>
+                        {article.author.username}{" "}
+                        <small>
+                          {formatDistanceToNow(new Date(article.createdAt))}
+                        </small>
+                      </h2>
+                      <h3>{article.title}</h3>
+                      <p>{article.description}</p>
+                    </IonLabel>
+                  </IonItem>
+                ))}
+    
+                <IonButton
+                  expand="full"
+                  color="primary"
+                  fill="clear"
+                  onClick={articlesNextPage}
+                >
+                  Load more...
+                </IonButton>
+              </IonList>
+            )}
+    
+            {section === "personal" && (
+              <IonList lines="full">
+                {userFeed && userFeed.map((article) => (
+                  <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
+                    <IonAvatar slot="start">
+                      <img src={article.author.image} />
+                    </IonAvatar>
+                    <IonLabel>
+                      <h2>
+                        {article.author.username}{" "}
+                        <small>
+                          {formatDistanceToNow(new Date(article.createdAt))}
+                        </small>
+                      </h2>
+                      <h3>{article.title}</h3>
+                      <p>{article.description}</p>
+                    </IonLabel>
+                  </IonItem>
+                ))}
+    
+                {/* <IonButton
+                  expand="full"
+                  color="primary"
+                  fill="clear"
+                  onClick={feedNextPage}
+                >
+                  Load more...
+                </IonButton> */}
+              </IonList>
+            )}
+            {(tags || '') && <TagsPopover
+              tags={tags}
+              isOpen={showPopover}
+              onDidDismiss={() => setShowPopover(false)}
+              onSelectTag={handleSelectTag}
+            />}
+          </>
         )}
 
         {isLoading && <ListSkeleton items={3} />}
       </IonContent>
 
-      <TagsPopover
-        tags={tags}
-        isOpen={showPopover}
-        onDidDismiss={() => setShowPopover(false)}
-        onSelectTag={handleSelectTag}
-      />
     </IonPage>
   );
 };

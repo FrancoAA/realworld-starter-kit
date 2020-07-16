@@ -21,29 +21,26 @@ import { close } from "ionicons/icons";
 
 import { Store } from "../../../common/AppStore";
 import { AUTH_FETCH_USER } from "../../../common/constants";
-import ApiService from "../../../common/api.service";
+import { useMutationUpdateUser } from '../../../common/hooks';
 
 const EditProfileModal = ({ isOpen, closeModal }) => {
   const { state, dispatch } = useContext(Store);
   const { user } = state;
   const [formData, setFormData] = useState({ ...user });
+  const [updateUser] = useMutationUpdateUser();
 
   const updateValues = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleUpdateProfile = async () => {
-    try {
-      const { data } = await ApiService.put('user', { user: formData });
-      dispatch({
-        type: AUTH_FETCH_USER,
-        payload: data.user
-      });
-    } catch (error) {
-      console.error(error);
-    } finally {
-      closeModal();
-    }
+    const { data } = await updateUser(formData);
+    console.log(data);
+    dispatch({
+      type: AUTH_FETCH_USER,
+      payload: data.user
+    });
+    closeModal();
   };
 
   return (

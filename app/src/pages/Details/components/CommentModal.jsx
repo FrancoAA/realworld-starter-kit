@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import { useMutation, queryCache } from 'react-query';
 
 import {
   IonModal,
@@ -19,13 +20,10 @@ import {
 
 import { close } from 'ionicons/icons';
 
-import { Store } from '../../../common/AppStore';
-import { FETCH_ARTICLE_COMMENTS } from '../../../common/constants';
-import { CommentsService } from '../../../common/api.service';
+import { useMutationPostComment } from '../../../common/hooks';
 
-const CommentModal = ({ isOpen, closeModal }) => {
-  const { state, dispatch } = useContext(Store);
-  const { user, article, comments } = state;
+const CommentModal = ({ isOpen, article, closeModal }) => {
+  const [mutate] = useMutationPostComment(article);
 
   const [formData, setFormData] = useState({
     body: ''
@@ -36,15 +34,7 @@ const CommentModal = ({ isOpen, closeModal }) => {
   };
 
   const publishComment = async() => {
-    console.log('Comment: ', formData);
-    
-    const { data } = await CommentsService.post(article.slug, formData.body);
-    
-    dispatch({
-      type: FETCH_ARTICLE_COMMENTS,
-      payload: [ data.comment, ...comments ]
-    });
-
+    await mutate(formData.body);
     closeModal();
   };
 
@@ -69,7 +59,7 @@ const CommentModal = ({ isOpen, closeModal }) => {
         </IonList>
       </IonContent>
       <IonFooter>
-        <IonButton expand="full" onClick={() => publishComment()}>
+        <IonButton expand="full" onClick={publishComment}>
           Publish
         </IonButton>
       </IonFooter>

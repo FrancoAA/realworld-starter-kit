@@ -14,7 +14,7 @@ import {
   IonLabel,
   IonIcon,
   IonList,
-  IonItem
+  IonItem,
 } from "@ionic/react";
 
 import { create } from "ionicons/icons";
@@ -22,58 +22,19 @@ import { create } from "ionicons/icons";
 import "./Profile.scss";
 
 import { Store } from "../../common/AppStore";
-import {
-  SET_LOADING,
-  FETCH_USER_ARTICLES,
-  FETCH_USER_FAVORITED_ARTICLES
-} from "../../common/constants";
-import { ArticlesService } from "../../common/api.service";
+import { useUserFavs, useUserArticles } from "../../common/hooks";
 
 import EditProfileModal from "./components/EditProfileModal";
 
 const Profile = () => {
-  const { state, dispatch } = useContext(Store);
-  const { user, userArticles, userFavorited } = state;
+  const { state } = useContext(Store);
+  const { user } = state;
   const [section, setSection] = useState("my-articles");
   const [editProfile, setEditProfile] = useState(false);
-
-  useEffect(() => {
-    async function fetchUserArticles() {
-      dispatch({
-        type: SET_LOADING,
-        payload: true
-      });
-
-      const { data } = await ArticlesService.query("", {
-        author: user.username
-      });
-
-      dispatch({
-        type: FETCH_USER_ARTICLES,
-        payload: data.articles
-      });
-
-      dispatch({
-        type: SET_LOADING,
-        payload: false
-      });
-    }
-
-    async function fetchUserFavoritedArticles() {
-
-      const { data } = await ArticlesService.query("", {
-        favorited: user.username
-      });
-
-      dispatch({
-        type: FETCH_USER_FAVORITED_ARTICLES,
-        payload: data.articles
-      });
-    }
-
-    fetchUserArticles();
-    fetchUserFavoritedArticles();
-  }, []);
+  const { data: userArticles } = useUserArticles(user.username, {
+    enabled: user,
+  });
+  const { data: userFavorited } = useUserFavs(user.username, { enabled: user });
 
   return (
     <IonPage className="Profile">
@@ -104,25 +65,30 @@ const Profile = () => {
         </div>
 
         <IonToolbar color="light">
-          <IonSegment onIonChange={e => setSection(e.detail.value)}>
+          <IonSegment onIonChange={(e) => setSection(e.detail.value)}>
             <IonSegmentButton
               value="my-articles"
               checked={section === "my-articles"}
             >
-              <IonLabel>My Articles ({userArticles.length})</IonLabel>
+              <IonLabel>
+                My Articles ({(userArticles && userArticles.length) || 0})
+              </IonLabel>
             </IonSegmentButton>
             <IonSegmentButton
               value="favorite-articles"
               checked={section === "favorite-articles"}
             >
-              <IonLabel>Favorited ({userFavorited.length})</IonLabel>
+              <IonLabel>
+                Favorited ({(userFavorited && userFavorited.length) || 0})
+              </IonLabel>
             </IonSegmentButton>
           </IonSegment>
         </IonToolbar>
 
         <IonList lines="full">
           {section === "my-articles" &&
-            userArticles.map(article => (
+            userArticles &&
+            userArticles.map((article) => (
               <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
                 <IonAvatar slot="start">
                   <img src={article.author.image} />
@@ -136,7 +102,8 @@ const Profile = () => {
             ))}
 
           {section === "favorite-articles" &&
-            userFavorited.map(article => (
+            userFavorited &&
+            userFavorited.map((article) => (
               <IonItem key={article.slug} routerLink={`/home/${article.slug}`}>
                 <IonAvatar slot="start">
                   <img src={article.author.image} />
@@ -149,8 +116,12 @@ const Profile = () => {
               </IonItem>
             ))}
 
-          {((section === "my-articles" && userArticles.length === 0) ||
-            (section === "favorite-articles" && userFavorited.length === 0)) && (
+          {((section === "my-articles" &&
+            userArticles &&
+            userArticles.length === 0) ||
+            (section === "favorite-articles" &&
+              userFavorited &&
+              userFavorited.length === 0)) && (
             <IonItem>
               <IonLabel>No articles are here... yet.</IonLabel>
             </IonItem>
