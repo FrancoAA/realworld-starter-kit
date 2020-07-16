@@ -14,60 +14,50 @@ import {
   IonTextarea,
   IonItem,
   IonFooter,
-  IonIcon
+  IonIcon,
 } from "@ionic/react";
 
-import { close } from 'ionicons/icons';
+import { close } from "ionicons/icons";
 
-import { Store } from './AppStore';
-import { CREATE_ARTICLE, UPDATE_ARTICLE } from './constants';
-import { getProp } from '../common/utils';
-import { ArticlesService } from '../common/api.service';
+import { Store } from "./AppStore";
+import { useMutationPublishArticle } from '../common/hooks';
+
+import { CREATE_ARTICLE, UPDATE_ARTICLE } from "./constants";
+import { getProp } from "../common/utils";
 
 const ComposeModal = ({ closeModal }) => {
   const formInitialState = {
-    title: '',
-    description: '',
-    body: '',
-    tagList: []
+    title: "",
+    description: "",
+    body: "",
+    tagList: [],
   };
 
   const { state, dispatch } = useContext(Store);
   const { showComposeModal, edit, article } = state;
   const [formData, setFormData] = useState(formInitialState);
+  const [editOrCreateArticle] = useMutationPublishArticle();
 
   useEffect(() => {
     setFormData(edit ? { ...article } : formInitialState);
-  }, [showComposeModal])
+  }, [showComposeModal]);
 
   const updateValues = (name, value) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const publishArticle = async(user) => {
-    const { id, username, bio, image, email } = user;
-    const article = {
-      author : {
-        id,
-        username,
-        bio,
-        image,
-        email
-      },
-      ...formData
-    };
+  const publishArticle = async (user) => {
+    const article = await editOrCreateArticle({ user, articleInfo: formData });
 
     if (!edit) {
-      const { data } = await ArticlesService.create(article);
       dispatch({
         type: CREATE_ARTICLE,
-        payload: data.article
+        payload: article,
       });
     } else {
-      const { data } = await ArticlesService.update(article.slug, article);
       dispatch({
         type: UPDATE_ARTICLE,
-        payload: data.article
+        payload: article,
       });
     }
 
@@ -80,7 +70,7 @@ const ComposeModal = ({ closeModal }) => {
         <IonToolbar>
           <IonButtons slot="start">
             <IonButton onClick={closeModal}>
-              <IonIcon icon={close}/>
+              <IonIcon icon={close} />
             </IonButton>
           </IonButtons>
           <IonTitle>Compose</IonTitle>
@@ -90,19 +80,38 @@ const ComposeModal = ({ closeModal }) => {
         <IonList lines="full" class="ion-no-margin ion-no-padding">
           <IonItem>
             <IonLabel position="stacked">Title</IonLabel>
-            <IonInput name="title" value={formData.title} onIonChange={e => updateValues(e.target.name, e.target.value)}></IonInput>
+            <IonInput
+              name="title"
+              value={formData.title}
+              onIonChange={(e) => updateValues(e.target.name, e.target.value)}
+            ></IonInput>
           </IonItem>
           <IonItem>
             <IonLabel position="stacked">Description</IonLabel>
-            <IonInput name="description" value={formData.description} onIonChange={e => updateValues(e.target.name, e.target.value)}></IonInput>
+            <IonInput
+              name="description"
+              value={formData.description}
+              onIonChange={(e) => updateValues(e.target.name, e.target.value)}
+            ></IonInput>
           </IonItem>
           <IonItem>
             <IonLabel position="stacked">Content</IonLabel>
-            <IonTextarea name="body" value={formData.body} rows="10" onIonChange={e => updateValues(e.target.name, e.target.value)}></IonTextarea>
+            <IonTextarea
+              name="body"
+              value={formData.body}
+              rows="10"
+              onIonChange={(e) => updateValues(e.target.name, e.target.value)}
+            ></IonTextarea>
           </IonItem>
           <IonItem>
             <IonLabel position="stacked">Tags</IonLabel>
-            <IonInput name="tagList" value={getProp(formData, 'tagList', []).join(' ')} onIonChange={e => updateValues(e.target.name, e.target.value.split(/\s+/))}></IonInput>
+            <IonInput
+              name="tagList"
+              value={getProp(formData, "tagList", []).join(" ")}
+              onIonChange={(e) =>
+                updateValues(e.target.name, e.target.value.split(/\s+/))
+              }
+            ></IonInput>
           </IonItem>
         </IonList>
       </IonContent>

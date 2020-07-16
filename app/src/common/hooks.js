@@ -118,30 +118,42 @@ export const useMutationDeleteComment = (slug) =>
   });
 
 export const useMutationPublishArticle = () =>
-  useMutation(async ({ user, articleInfo }) => {
-    const { id, username, bio, image, email } = user;
-    const article = {
-      author: {
-        id,
-        username,
-        bio,
-        image,
-        email,
+  useMutation(
+    async ({ user, articleInfo }) => {
+      const { id, username, bio, image, email } = user;
+      const article = {
+        author: {
+          id,
+          username,
+          bio,
+          image,
+          email,
+        },
+        ...articleInfo,
+      };
+
+      const { data } = articleInfo.slug
+        ? await ArticlesService.update(article)
+        : await ArticlesService.create(article);
+
+      return data.article;
+    },
+    {
+      onSuccess: () => {
+        queryCache.invalidateQueries("userArticles");
+        queryCache.invalidateQueries("articles");
       },
-      ...articleInfo,
-    };
-
-    const { data } = articleInfo.slug
-      ? await ArticlesService.update(article)
-      : await ArticlesService.create(article);
-
-    return data.article;
-  });
+    }
+  );
 
 export const useMutationDeleteArticle = () =>
-  useMutation((article) => ArticlesService.destroy(article.slug), {
+  useMutation(article => {
+    console.log('useMutationDeleteArticle', article);
+    return ArticlesService.destroy(article.slug);
+  }, {
     onSuccess: () => {
       queryCache.invalidateQueries("article");
+      queryCache.invalidateQueries("userArticles");
       queryCache.invalidateQueries("articles");
     },
   });
@@ -155,9 +167,9 @@ export const useUserArticles = (username) => {
   return useQuery(
     "userArticles",
     async (_) => {
-      console.log('useUserArticles', username);
+      console.log("useUserArticles", username);
       const { data } = await ArticlesService.query("", {
-        author: username
+        author: username,
       });
       return data.articles;
     },
@@ -170,7 +182,7 @@ export const useUserFavs = (username) => {
     "userFavs",
     async (_) => {
       const { data } = await ArticlesService.query("", {
-        favorited: username
+        favorited: username,
       });
       return data.articles;
     },
@@ -178,8 +190,8 @@ export const useUserFavs = (username) => {
   );
 };
 
-export const useMutationUpdateUser = () => 
-  useMutation(userData => {
-    console.log('userData', userData);
-    return ApiService.put('user', {user: userData })
+export const useMutationUpdateUser = () =>
+  useMutation((userData) => {
+    console.log("userData", userData);
+    return ApiService.put("user", { user: userData });
   });

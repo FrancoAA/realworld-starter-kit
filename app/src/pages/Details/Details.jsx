@@ -57,8 +57,6 @@ import {
 
 import {
   EDIT_ARTICLE,
-  DELETE_ARTICLE,
-  DELETE_COMMENT,
 } from "../../common/constants";
 
 import PageHeader from "../../common/PageHeader/PageHeader";
@@ -132,9 +130,9 @@ const Details = () => {
     await deleteComment(slug, comment.id);
   };
 
-  const deleteArticle = async (article) => {
+  const deleteArticle = async () => {
     setShowAlert(false);
-
+    console.log('deleteArticle', article);
     await _deleteArticle(article);
 
     history.goBack();
